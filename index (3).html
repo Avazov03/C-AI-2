@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMAI — Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #e8edf5;
+            --primary: #1e40af;
+            --pl: #3b82f6;
+            --surface: #fff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --g: 12px;
+            --r: 20px;
+            --hdr: 62px;
+            --glow-r: 30;
+            --glow-g: 64;
+            --glow-b: 175;
+            --glow-color: 30, 64, 175;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            padding: var(--g);
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        body::-webkit-scrollbar { width: 5px }
+        body::-webkit-scrollbar-track { background: transparent }
+        body::-webkit-scrollbar-thumb { background: rgba(30, 64, 175, 0.4); border-radius: 99px }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: var(--r);
+            box-shadow: 0 8px 32px -10px rgba(30, 64, 175, .15), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            position: relative;
+            overflow: hidden;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 300px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.7)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.3)) 40%,
+                    transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        .hdr {
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 400px;
+            position: relative;
+        }
+
+        .hdr::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.6)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.25)) 40%,
+                    transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 200;
+            transition: opacity 0.3s ease;
+        }
+
+        .hdr {
+            height: var(--hdr);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(28px) saturate(1.5);
+            -webkit-backdrop-filter: blur(28px) saturate(1.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--r);
+            box-shadow: 0 2px 24px -6px rgba(30, 64, 175, .12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+            position: sticky;
+            top: var(--g);
+            z-index: 100;
+            transition: top .35s cubic-bezier(.4, 0, .2, 1), border-radius .35s cubic-bezier(.4, 0, .2, 1), background .35s, box-shadow .35s, margin .35s, padding .35s;
+        }
+
+        .hdr.scrolled {
+            top: 0;
+            border-radius: 0;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(32px) saturate(1.6);
+            -webkit-backdrop-filter: blur(32px) saturate(1.6);
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid rgba(226, 232, 240, .4);
+            box-shadow: 0 1px 24px -4px rgba(30, 64, 175, .1);
+            margin-left: calc(-1 * var(--g));
+            margin-right: calc(-1 * var(--g));
+            padding-left: calc(26px + var(--g));
+            padding-right: calc(26px + var(--g));
+        }
+
+        .logo-ic {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .55);
+        }
+
+        nav a {
+            font-size: 13px; font-weight: 600; color: var(--muted);
+            text-decoration: none; transition: color .2s; white-space: nowrap; position: relative
+        }
+        nav a::after {
+            content: ''; position: absolute; bottom: -6px; left: 0;
+            width: 0; height: 2.5px; background: var(--primary);
+            border-radius: 99px; transition: width .25s cubic-bezier(.4, 0, .2, 1)
+        }
+        nav a:hover { color: var(--text) }
+        nav a:hover::after { width: 100% }
+        nav a.act { color: var(--primary) }
+        nav a.act::after { width: 100% }
+
+        .sbox {
+            display: flex; align-items: center; gap: 7px;
+            background: #f1f5f9; border: 1px solid var(--border);
+            border-radius: 99px; padding: 7px 16px
+        }
+        .sbox input {
+            background: none; border: none; outline: none;
+            font-size: 12px; font-family: inherit; color: var(--text); width: 120px
+        }
+
+        .nb {
+            position: relative; width: 36px; height: 36px; border-radius: 50%;
+            background: none; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted); transition: background .2s
+        }
+        .nb:hover { background: #f1f5f9 }
+        .nd {
+            position: absolute; top: 6px; right: 6px;
+            width: 7px; height: 7px; background: #ef4444;
+            border-radius: 50%; border: 2px solid white
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 62fr 38fr;
+            gap: var(--g);
+            align-items: start;
+        }
+
+        .left-col { display: flex; flex-direction: column; gap: var(--g); min-width: 0; }
+
+        .map-wrap { height: calc(100vh - var(--hdr) - 36px); position: relative; }
+        #map-canvas { position: absolute; inset: 0 }
+
+        .map-ctrl {
+            position: absolute; top: 16px; left: 16px; z-index: 10;
+            display: flex; flex-direction: column; gap: 9px
+        }
+
+        #back-map {
+            display: none; align-items: center; gap: 7px; padding: 7px 16px;
+            background: rgba(255,255,255,.96); border: 1px solid var(--border);
+            border-radius: 12px; box-shadow: 0 5px 16px -4px rgba(0,0,0,.12);
+            font-size: 12px; font-weight: 700; color: var(--text); cursor: pointer;
+            backdrop-filter: blur(8px); transition: all .2s; font-family: inherit;
+        }
+        #back-map.show { display: flex }
+        #back-map:hover { transform: translateX(-2px) }
+
+        .zc {
+            background: rgba(255,255,255,.96); border: 1px solid var(--border);
+            border-radius: 12px; box-shadow: 0 5px 16px -4px rgba(0,0,0,.12);
+            backdrop-filter: blur(8px); overflow: hidden
+        }
+        .zb {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; background: none; border: none;
+            cursor: pointer; color: var(--text); transition: background .2s
+        }
+        .zb:hover { background: #f8fafc }
+        .zb:not(:last-child) { border-bottom: 1px solid var(--border) }
+
+        .map-legend {
+            position: absolute; bottom: 16px; left: 16px; z-index: 10;
+            background: rgba(255,255,255,.96); border: 1px solid var(--border);
+            border-radius: 14px; box-shadow: 0 5px 16px -4px rgba(0,0,0,.12);
+            backdrop-filter: blur(8px); padding: 12px 16px;
+        }
+        .lg-t { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 8px }
+        .lg-bar { height: 7px; width: 130px; background: linear-gradient(to right, #eff6ff, #3b82f6, #1e40af); border-radius: 99px }
+        .lg-lbl { display: flex; justify-content: space-between; font-size: 9px; font-weight: 700; color: var(--muted); margin-top: 4px }
+
+        .bp { display: flex; flex-direction: column }
+        .bp-head { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0 }
+        .bp-title {
+            font-size: 12px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--muted);
+            display: flex; align-items: center; gap: 7px
+        }
+        .bp-title .badge { font-size: 9px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 99px; font-weight: 700 }
+        .bp-body { padding: 22px 24px; flex: 1 }
+
+        .right-col { display: flex; flex-direction: column; gap: var(--g); }
+        .right-panel { display: flex; flex-direction: column }
+        .rp-head { padding: 20px 22px 14px; border-bottom: 1px solid var(--border); }
+        .rp-title { font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -.03em; line-height: 1.2 }
+        .rp-sub { font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 3px }
+        .year-tabs { display: flex; gap: 6px; margin-top: 11px }
+        .dyn-kpi-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+        .dyn-kpi { background:#f8fafc; border:1px solid #f1f5f9; border-radius:12px; padding:9px 12px; border-left:3px solid transparent; transition:border-color .3s; }
+        .dyn-kpi-lbl { font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:4px; }
+        .dyn-kpi-val { font-size:18px; font-weight:800; line-height:1; }
+        .dyn-kpi-sub { font-size:10px; font-weight:600; color:var(--muted); margin-top:3px; }
+        .ytab {
+            padding: 5px 14px; border-radius: 99px; font-size: 11px; font-weight: 700;
+            border: 1.5px solid var(--border); background: #f8fafc; color: var(--muted);
+            cursor: pointer; transition: all .2s; font-family: inherit
+        }
+        .ytab.on { background: var(--primary); color: white; border-color: var(--primary) }
+        .rp-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px }
+
+        .sc {
+            background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 16px;
+            padding: 16px; transition: box-shadow .2s; position: relative; overflow: hidden;
+            --glow-x: 50%; --glow-y: 50%; --glow-intensity: 0; --glow-radius: 200px;
+        }
+        .sc::after {
+            content: ''; position: absolute; inset: 0; padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.6)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.25)) 40%,
+                    transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none; z-index: 2;
+        }
+        .sc:hover { box-shadow: 0 6px 24px -6px rgba(0,0,0,.09) }
+        .sc-title {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--muted); margin-bottom: 13px;
+            display: flex; align-items: center; gap: 6px
+        }
+        .sc-title .badge { font-size: 8.5px; background: var(--primary); color: white; padding: 2px 7px; border-radius: 99px; font-weight: 700 }
+
+        .donut-row { display: flex; align-items: center; gap: 16px }
+        .donut-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0 }
+        .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center }
+        .donut-center b { font-size: 19px; font-weight: 800; color: var(--text) }
+        .donut-center small { font-size: 9.5px; color: var(--muted); font-weight: 600 }
+
+        .pills { display: flex; flex-direction: column; gap: 8px; flex: 1 }
+        .pill { display: flex; align-items: center; gap: 8px }
+        .pdot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0 }
+        .pname { font-size: 12px; font-weight: 600; color: var(--text); flex: 1 }
+        .pval { font-size: 14px; font-weight: 800; color: var(--text) }
+        .ppct { font-size: 11px; font-weight: 700; color: var(--muted) }
+
+        .sev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+        .sev-block { border-radius: 13px; padding: 13px 15px }
+        .sv-num { font-size: 24px; font-weight: 800 }
+        .sv-lbl { font-size: 11px; font-weight: 600; opacity: .85; margin-top: 2px }
+        .sv-pct { font-size: 13px; font-weight: 800; margin-top: 6px }
+
+        .prow { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px }
+        .pmeta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700 }
+        .ptrack { height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden }
+        .pfill { height: 100%; border-radius: 99px; transition: width .6s }
+
+        .sbox2 { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 13px; margin-bottom: 9px }
+        .sbox2 .lb { font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 4px }
+        .sbox2 .vl { font-size: 22px; font-weight: 800; color: var(--text) }
+
+        .mrow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px }
+        .mname { font-size: 12px; font-weight: 700; color: var(--text); width: 76px; flex-shrink: 0; min-width: 76px }
+        .mtrack { flex: 1; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden }
+        .mfill { height: 100%; border-radius: 99px }
+        .mnum { font-size: 12px; font-weight: 800; color: var(--text); width: 26px; text-align: right; flex-shrink: 0 }
+
+        .tab-row { display: flex; gap: 5px; margin-bottom: 14px }
+        .tb {
+            padding: 5px 14px; border-radius: 99px; font-size: 11px; font-weight: 700;
+            border: 1.5px solid var(--border); background: #f8fafc; color: var(--muted);
+            cursor: pointer; transition: all .2s; font-family: inherit
+        }
+        .tb.on { background: var(--primary); color: white; border-color: var(--primary) }
+
+        .hbar { display: flex; align-items: center; gap: 9px; margin-bottom: 8px }
+        .hl { font-size: 12px; font-weight: 600; color: var(--text); width: 96px; flex-shrink: 0 }
+        .ht { flex: 1; height: 7px; background: #e2e8f0; border-radius: 99px; overflow: hidden }
+        .hf { height: 100%; border-radius: 99px }
+        .hv { font-size: 12px; font-weight: 800; color: var(--text); width: 30px; text-align: right; flex-shrink: 0 }
+
+        .kv-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 9px 13px; background: white; border-radius: 11px;
+            border: 1px solid var(--border); margin-bottom: 7px
+        }
+        .kk { font-size: 13px; font-weight: 600; color: var(--text) }
+        .kv2 { font-size: 15px; font-weight: 800; color: var(--primary) }
+
+        .sub-lbl {
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: .07em; color: var(--muted); margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px
+        }
+        .sub-lbl .badge { font-size: 8.5px; background: #94a3b8; color: white; padding: 2px 7px; border-radius: 99px; font-weight: 700 }
+
+        .mrow-mod { display: flex; align-items: center; gap: 8px; margin-bottom: 7px }
+        .mname-mod { font-size: 12px; font-weight: 700; color: var(--text); width: 80px; flex-shrink: 0 }
+        .mtrack-mod { flex: 1; height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden }
+        .mfill-mod { height: 100%; border-radius: 99px }
+        .mnum-mod { font-size: 12px; font-weight: 800; color: var(--text); width: 28px; text-align: right; flex-shrink: 0 }
+
+        canvas { display: block }
+
+        /* ── YOSH CHART SCROLL (YANGI) ── */
+        .age-scroll-wrap {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 4px;
+            width: 100%;
+            max-width: 100%;
+        }
+        .age-scroll-wrap::-webkit-scrollbar { height: 4px }
+        .age-scroll-wrap::-webkit-scrollbar-track { background: transparent }
+        .age-scroll-wrap::-webkit-scrollbar-thumb { background: rgba(30,64,175,0.25); border-radius: 99px }
+        .age-inner { min-width: 2400px; height: 460px; }
+        .age-legend { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+        .age-leg-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--muted); }
+        .age-leg-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .age-scroll-hint { margin-top: 8px; font-size: 10px; color: var(--muted); font-weight: 600; text-align: center; opacity: 0.7; }
+
+        #global-spotlight {
+            position: fixed; width: 700px; height: 700px; border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(30,64,175,0.13) 0%, rgba(30,64,175,0.07) 20%, rgba(59,130,246,0.04) 40%, rgba(59,130,246,0.01) 60%, transparent 70%);
+            z-index: 9999; opacity: 0; transform: translate(-50%, -50%);
+            mix-blend-mode: multiply; transition: opacity 0.4s ease; will-change: transform, opacity;
+        }
+
+        .cmai-particle {
+            position: fixed; width: 4px; height: 4px; border-radius: 50%;
+            background: rgba(30,64,175,1);
+            box-shadow: 0 0 8px rgba(30,64,175,0.8), 0 0 16px rgba(59,130,246,0.4);
+            pointer-events: none; z-index: 9998; opacity: 0;
+            transform: translate(-50%, -50%); will-change: transform, opacity;
+        }
+
+        .cmai-ripple {
+            position: fixed; border-radius: 50%; pointer-events: none; z-index: 9997;
+            transform: translate(-50%, -50%) scale(0);
+            border: 1.5px solid rgba(30,64,175,0.5);
+            background: radial-gradient(circle, rgba(30,64,175,0.12) 0%, rgba(59,130,246,0.06) 40%, transparent 70%);
+            animation: rippleOut 0.8s cubic-bezier(0.2,0,0.6,1) forwards;
+        }
+        @keyframes rippleOut {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            60% { opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        .gooey-nav-container { position: relative; display: flex; align-items: center; }
+        .gooey-nav-container > nav { position: relative; transform: translate3d(0,0,0.01px); z-index: 3; }
+        .gooey-nav-container > nav > ul { display: flex; gap: 2px; list-style: none; padding: 0; margin: 0; align-items: center; }
+        .gooey-nav-container > nav > ul > li { position: relative; cursor: pointer; border-radius: 100vw; }
+        .gooey-nav-container > nav > ul > li > a {
+            display: block; padding: 7px 15px; font-size: 13px; font-weight: 600;
+            color: var(--muted); text-decoration: none; white-space: nowrap;
+            font-family: inherit; position: relative; z-index: 2;
+            transition: color 0.25s ease; border-radius: 100vw;
+        }
+        .gooey-nav-container > nav > ul > li.active > a { color: white; }
+        .gooey-nav-container > nav > ul > li > .gnav-bg {
+            position: absolute; inset: 0; border-radius: 100vw;
+            background: var(--primary); z-index: 1;
+            transform: scale(0.3); opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+        }
+        .gooey-nav-container > nav > ul > li.active > .gnav-bg { transform: scale(1); opacity: 1; }
+
+        #gnavParticleLayer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 99999; overflow: visible;
+        }
+        .gnav-dot {
+            position: absolute; border-radius: 50%; pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: gnavDot var(--dur, 0.9s) cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+        }
+        @keyframes gnavDot {
+            0% { transform: translate(-50%,-50%) translate(0px,0px) scale(1); opacity: 1; }
+            100% { transform: translate(-50%,-50%) translate(var(--tx),var(--ty)) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="global-spotlight"></div>
+    <div id="gnavParticleLayer"></div>
+
+    <header class="hdr">
+        <div style="display:flex;align-items:center;gap:26px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div class="logo-ic"><i data-lucide="layers" style="width:18px;height:18px;color:white"></i></div>
+                <span style="font-size:20px;font-weight:800;letter-spacing:-.04em;color:#0f172a">CMAI<span style="color:#3b82f6">.</span></span>
+            </div>
+            <div class="gooey-nav-container" id="gooeyNavContainer">
+                <nav>
+                    <ul id="gooeyNavList">
+                        <li data-page="index"><span class="gnav-bg"></span><a href="index.html" data-page="index">Dashboard</a></li>
+                        <li data-page="ai_chat_bot"><span class="gnav-bg"></span><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a></li>
+                        <li><span class="gnav-bg"></span><a href="#">Monitoring</a></li>
+                        <li><span class="gnav-bg"></span><a href="#">Hududlar tahlili</a></li>
+                        <li><span class="gnav-bg"></span><a href="#">Resurslar</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+            <div class="sbox">
+                <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                <input type="text" placeholder="Qidiruv...">
+            </div>
+            <button class="nb">
+                <i data-lucide="bell" style="width:17px;height:17px"></i>
+                <span class="nd"></span>
+            </button>
+            <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
+                <div style="text-align:right">
+                    <p style="font-size:11.5px;font-weight:800;color:var(--text)">Admin User</p>
+                    <p style="font-size:10px;color:var(--muted)">Boshqaruvchi</p>
+                </div>
+                <div style="width:34px;height:34px;border-radius:10px;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e40af&color=fff" alt="" style="width:100%;height:100%">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-grid">
+
+        <div class="left-col">
+
+            <!-- MAP -->
+            <div class="panel map-wrap">
+                <div id="map-canvas"></div>
+                <div class="map-ctrl">
+                    <button id="back-map">
+                        <i data-lucide="arrow-left" style="width:13px;height:13px"></i>
+                        Umumiy ko'rinish
+                    </button>
+                    <div class="zc">
+                        <button class="zb" id="zoom-in"><i data-lucide="plus" style="width:15px;height:15px"></i></button>
+                        <button class="zb" id="zoom-out"><i data-lucide="minus" style="width:15px;height:15px"></i></button>
+                        <button class="zb" id="zoom-reset"><i data-lucide="maximize-2" style="width:13px;height:13px"></i></button>
+                    </div>
+                </div>
+                <div class="map-legend">
+                    <p class="lg-t">Zichlik darajasi</p>
+                    <div class="lg-bar"></div>
+                    <div class="lg-lbl"><span>0</span><span>500k</span><span>1M+</span></div>
+                </div>
+            </div>
+
+            <!-- DINAMIKA -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                        <div class="bp-title"><span class="badge">1</span> Yillar va oylar kesimida dinamika</div>
+                        <div class="tab-row" id="dynTabs" style="margin-bottom:0">
+                            <button class="tb on" data-k="all">Jami</button>
+                            <button class="tb" data-k="2023">2023</button>
+                            <button class="tb" data-k="2024">2024</button>
+                            <button class="tb" data-k="2025">2025</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body">
+                    <div id="dynKpiRow" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;"></div>
+                    <div style="position:relative;height:340px;width:100%">
+                        <canvas id="dynamikaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- YOSH TAQSIMOTI — YANGI -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div class="bp-title"><span class="badge">5</span> Yosh taqsimoti (14–100)</div>
+                        <div class="tab-row" id="age5tabs" style="margin-bottom:0">
+                            <button class="tb on" data-k="all">Jami</button>
+                            <button class="tb" data-k="m">Erkak</button>
+                            <button class="tb" data-k="f">Ayol</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body">
+                    <div class="age-legend" id="ageLegend">
+                        <div class="age-leg-item"><div class="age-leg-dot" style="background:#1e40af"></div>Erkak</div>
+                        <div class="age-leg-item"><div class="age-leg-dot" style="background:#f472b6"></div>Ayol</div>
+                    </div>
+                    <div class="age-scroll-wrap">
+                        <div class="age-inner">
+                            <canvas id="ageChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="age-scroll-hint">← Chapga/o'ngga scroll — barcha yoshlar (14–100) →</div>
+                </div>
+            </div>
+
+            <!-- IJTIMOIY -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div class="bp-title">Ijtimoiy ko'rsatkichlar</div>
+                </div>
+                <div class="bp-body" style="padding-top:28px;padding-bottom:36px;min-height:460px;display:flex;flex-direction:column;gap:28px">
+                    <div>
+                        <div class="sub-lbl"><span class="badge">8</span> Bandlik holati</div>
+                        <div class="hbar"><span class="hl">Ishsiz</span><div class="ht"><div class="hf" style="width:45%;background:#ef4444"></div></div><span class="hv">207</span></div>
+                        <div class="hbar"><span class="hl">Ishli</span><div class="ht"><div class="hf" style="width:40%;background:#3b82f6"></div></div><span class="hv">184</span></div>
+                        <div class="hbar"><span class="hl">Talaba</span><div class="ht"><div class="hf" style="width:10%;background:#f97316"></div></div><span class="hv">46</span></div>
+                        <div class="hbar"><span class="hl">Pensioner</span><div class="ht"><div class="hf" style="width:5%;background:#8b5cf6"></div></div><span class="hv">23</span></div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px">
+                        <div>
+                            <div class="sub-lbl"><span class="badge">10</span> Oilaviy ahvoli</div>
+                            <div class="kv-row"><span class="kk">&#128141; Turmush qurgan</span><span class="kv2">230</span></div>
+                            <div class="kv-row"><span class="kk">&#128148; Ajrashgan</span><span class="kv2">69</span></div>
+                            <div class="kv-row"><span class="kk">&#129333; Bo'ydoq</span><span class="kv2">138</span></div>
+                        </div>
+                        <div>
+                            <div class="sub-lbl"><span class="badge">11</span> Tibbiy holat</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+                                <div style="background:#fff7ed;border-radius:12px;padding:11px 13px;border-left:3px solid #f97316"><div style="font-size:10px;font-weight:700;color:#c2410c;margin-bottom:3px">Alkogol</div><div style="font-size:22px;font-weight:800;color:#f97316">138</div></div>
+                                <div style="background:#faf5ff;border-radius:12px;padding:11px 13px;border-left:3px solid #8b5cf6"><div style="font-size:10px;font-weight:700;color:#6d28d9;margin-bottom:3px">Narkotik</div><div style="font-size:22px;font-weight:800;color:#8b5cf6">46</div></div>
+                                <div style="background:#f0fdf4;border-radius:12px;padding:11px 13px;border-left:3px solid #22c55e"><div style="font-size:10px;font-weight:700;color:#15803d;margin-bottom:3px">Sog'lom</div><div style="font-size:22px;font-weight:800;color:#22c55e">391</div></div>
+                                <div style="background:#fef2f2;border-radius:12px;padding:11px 13px;border-left:3px solid #ef4444"><div style="font-size:10px;font-weight:700;color:#b91c1c;margin-bottom:3px">Affekt</div><div style="font-size:22px;font-weight:800;color:#ef4444">46</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="right-col">
+            <div class="panel right-panel">
+                <div class="rp-head">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                        <i data-lucide="map-pin" style="width:14px;height:14px;color:var(--primary);flex-shrink:0"></i>
+                        <p class="rp-title" id="rp-region-name">O'zbekiston Respublikasi</p>
+                    </div>
+                    <p class="rp-sub" id="rp-region-sub">Barcha viloyatlar · umumiy statistika</p>
+                    <div class="year-tabs" id="yearTabs">
+                        <button class="ytab" data-y="2023">2023</button>
+                        <button class="ytab on" data-y="2024">2024</button>
+                        <button class="ytab" data-y="2025">2025</button>
+                    </div>
+                </div>
+                <div class="rp-body">
+                    <div class="sc" style="padding:16px 15px 13px">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+                            <div class="sc-title" style="margin-bottom:0"><span class="badge">&#9650;</span> Viloyatlar reytingi</div>
+                            <span style="font-size:10px;font-weight:700;color:var(--muted)">jinoyat soni</span>
+                        </div>
+                        <div id="regionRankList"></div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-title"><span class="badge">3</span> Jinoyatchilarning jinsi</div>
+                        <div class="donut-row">
+                            <div class="donut-wrap"><canvas id="genderChart" width="100" height="100"></canvas><div class="donut-center"><b>461</b><small>Jami</small></div></div>
+                            <div class="pills">
+                                <div class="pill"><div class="pdot" style="background:#1e40af"></div><span class="pname">Erkaklar</span><span class="pval">391</span><span class="ppct">85%</span></div>
+                                <div class="pill"><div class="pdot" style="background:#f472b6"></div><span class="pname">Ayollar</span><span class="pval">70</span><span class="ppct">15%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-title"><span class="badge">4</span> Voyaga yetgan / yetmagan</div>
+                        <div class="donut-row">
+                            <div class="donut-wrap"><canvas id="ageGroupChart" width="100" height="100"></canvas><div class="donut-center"><b>461</b><small>Jami</small></div></div>
+                            <div class="pills">
+                                <div class="pill"><div class="pdot" style="background:#1e40af"></div><span class="pname">Voyaga yetganlar</span><span class="pval">424</span><span class="ppct">92%</span></div>
+                                <div class="pill"><div class="pdot" style="background:#f97316"></div><span class="pname">Voyaga yetmaganlar</span><span class="pval">37</span><span class="ppct">8%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-title"><span class="badge">7</span> Jinoyatni qayta sodir etilishi</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+                            <div class="sbox2" style="border-left:3px solid #ef4444;margin-bottom:0"><div class="lb">Qayta sodir etgan</div><div class="vl" style="color:#ef4444">115</div></div>
+                            <div class="sbox2" style="border-left:3px solid #22c55e;margin-bottom:0"><div class="lb">Birinchi marta</div><div class="vl" style="color:#22c55e">346</div></div>
+                        </div>
+                        <div class="prow"><div class="pmeta"><span style="color:#ef4444">Qayta</span><span style="color:#ef4444">25%</span></div><div class="ptrack"><div class="pfill" style="width:25%;background:linear-gradient(to right,#fca5a5,#ef4444)"></div></div></div>
+                        <div class="prow"><div class="pmeta"><span style="color:#22c55e">Birinchi marta</span><span style="color:#22c55e">75%</span></div><div class="ptrack"><div class="pfill" style="width:75%;background:linear-gradient(to right,#86efac,#22c55e)"></div></div></div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-title"><span class="badge">9</span> Ta'lim darajasi</div>
+                        <div class="donut-row">
+                            <div class="donut-wrap"><canvas id="eduChart" width="100" height="100"></canvas><div class="donut-center"><b>461</b><small>Jami</small></div></div>
+                            <div class="pills">
+                                <div class="pill"><div class="pdot" style="background:#1e40af"></div><span class="pname">Oliy ma'lumotli</span><span class="pval">92</span><span class="ppct">20%</span></div>
+                                <div class="pill"><div class="pdot" style="background:#93c5fd"></div><span class="pname">O'rta ma'lumotli</span><span class="pval">369</span><span class="ppct">80%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sc">
+                        <div class="sc-title"><span class="badge">12</span> Jinoyat sodir etilganlik turi</div>
+                        <div class="sev-grid">
+                            <div class="sev-block" style="background:#dbeafe;color:#1e40af"><div class="sv-num">138</div><div class="sv-lbl">Ijtimoiy xavfi kam</div><div class="sv-pct">30%</div></div>
+                            <div class="sev-block" style="background:#dcfce7;color:#15803d"><div class="sv-num">184</div><div class="sv-lbl">Uncha og'ir emas</div><div class="sv-pct">40%</div></div>
+                            <div class="sev-block" style="background:#fff7ed;color:#c2410c"><div class="sv-num">92</div><div class="sv-lbl">Og'ir</div><div class="sv-pct">20%</div></div>
+                            <div class="sev-block" style="background:#fee2e2;color:#b91c1c"><div class="sv-num">46</div><div class="sv-lbl">O'ta og'ir</div><div class="sv-pct">10%</div></div>
+                        </div>
+                        <div style="margin-top:12px"><canvas id="sevChart" height="38"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div class="bp-title"><span class="badge">6</span> Jinoyat moddalari (97–302)</div>
+                        <div class="tab-row" id="modda6tabs" style="margin-bottom:0">
+                            <button class="tb on" data-k="all">Jami</button>
+                            <button class="tb" data-k="m">Erkak</button>
+                            <button class="tb" data-k="f">Ayol</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body"><div id="moddaList"></div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        (function () {
+            const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
+            document.querySelectorAll('nav a[data-page]').forEach(a => {
+                if (a.dataset.page === page) a.classList.add('act');
+                else a.classList.remove('act');
+            });
+        })();
+
+        (function () {
+            const hdr = document.querySelector('.hdr');
+            const obs = new IntersectionObserver(([e]) => {
+                hdr.classList.toggle('scrolled', e.intersectionRatio < 1);
+            }, { threshold: [1], rootMargin: '-1px 0px 0px 0px' });
+            obs.observe(hdr);
+        })();
+
+        (function () {
+            const spotlight = document.getElementById('global-spotlight');
+            let mouseX = -1000, mouseY = -1000, currentX = -1000, currentY = -1000;
+            function lerp(a, b, t) { return a + (b - a) * t; }
+            function animateSpotlight() {
+                currentX = lerp(currentX, mouseX, 0.1);
+                currentY = lerp(currentY, mouseY, 0.1);
+                spotlight.style.left = currentX + 'px';
+                spotlight.style.top = currentY + 'px';
+                requestAnimationFrame(animateSpotlight);
+            }
+            animateSpotlight();
+            const glowTargets = () => [...document.querySelectorAll('.panel'), ...document.querySelectorAll('.sc'), document.querySelector('.hdr')].filter(Boolean);
+            document.addEventListener('mousemove', function (e) {
+                mouseX = e.clientX; mouseY = e.clientY;
+                spotlight.style.opacity = '1';
+                glowTargets().forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const relX = ((e.clientX - rect.left) / rect.width) * 100;
+                    const relY = ((e.clientY - rect.top) / rect.height) * 100;
+                    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+                    const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
+                    const maxR = Math.hypot(rect.width, rect.height) / 2;
+                    const proximity = Math.max(0, 1 - (dist - maxR * 0.3) / (maxR * 1.2));
+                    el.style.setProperty('--glow-x', relX + '%');
+                    el.style.setProperty('--glow-y', relY + '%');
+                    el.style.setProperty('--glow-intensity', Math.min(1, proximity * 1.4).toFixed(3));
+                });
+            });
+            document.addEventListener('mouseleave', function () {
+                spotlight.style.opacity = '0';
+                glowTargets().forEach(el => el.style.setProperty('--glow-intensity', '0'));
+            });
+            const particles = [];
+            let particleIndex = 0, lastParticleTime = 0;
+            for (let i = 0; i < 18; i++) { const p = document.createElement('div'); p.className = 'cmai-particle'; document.body.appendChild(p); particles.push({ el: p }); }
+            function spawnParticle(x, y) {
+                const slot = particles[particleIndex++ % 18];
+                const offsetX = (Math.random() - 0.5) * 20, offsetY = (Math.random() - 0.5) * 20, size = 2 + Math.random() * 4;
+                slot.el.style.cssText = `position:fixed;width:${size}px;height:${size}px;border-radius:50%;background:rgba(30,64,175,${0.6 + Math.random() * 0.4});box-shadow:0 0 ${size*2}px rgba(30,64,175,0.7);pointer-events:none;z-index:9998;left:${x+offsetX}px;top:${y+offsetY}px;transform:translate(-50%,-50%) scale(1);opacity:0.9;transition:none;`;
+                requestAnimationFrame(() => { slot.el.style.transition = 'transform 0.7s ease-out,opacity 0.7s ease-out'; slot.el.style.transform = `translate(-50%,-50%) scale(0)`; slot.el.style.opacity = '0'; });
+            }
+            document.addEventListener('mousemove', function (e) { const now = Date.now(); if (now - lastParticleTime > 45) { lastParticleTime = now; spawnParticle(e.clientX, e.clientY); } });
+            document.addEventListener('click', function (e) {
+                if (e.target.closest('button,a,input,select,canvas')) return;
+                [50, 90, 140].forEach((sz, i) => {
+                    const r = document.createElement('div'); r.className = 'cmai-ripple';
+                    r.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:${sz}px;height:${sz}px;border-radius:50%;pointer-events:none;z-index:9997;transform:translate(-50%,-50%) scale(0);border:1.5px solid rgba(30,64,175,${0.5-i*0.12});background:radial-gradient(circle,rgba(30,64,175,${0.1-i*0.02}) 0%,transparent 70%);animation:rippleOut 0.8s cubic-bezier(0.2,0,0.6,1) ${i*120}ms forwards;`;
+                    document.body.appendChild(r); setTimeout(() => r.remove(), 1200);
+                });
+            });
+        })();
+
+        const months = ['Yan','Feb','Mar','Apr','May','Iyn','Iyl','Avg','Sen','Okt','Noy','Dek'];
+        const dynData = {
+            2023: [18,22,15,28,20,32,25,30,27,35,28,40],
+            2024: [22,30,25,38,32,45,38,42,36,50,44,55],
+            2025: [28,36,30,42,38,50,44,48,null,null,null,null]
+        };
+
+        const TT = {
+            backgroundColor:'rgba(255,255,255,.97)',borderColor:'#e2e8f0',borderWidth:1,
+            titleColor:'#1e293b',bodyColor:'#64748b',padding:10,cornerRadius:10,
+            titleFont:{weight:'700',family:'Plus Jakarta Sans'},bodyFont:{family:'Plus Jakarta Sans'}
+        };
+
+        const dynKpiMeta = {
+            all: {jami:1073, rekord:{oy:'Dekabr 2024',val:55}, osish:'+35%', color:'#1e40af'},
+            2023:{jami:300,  rekord:{oy:'Dekabr',val:40},       osish:'+12%', color:'#93c5fd'},
+            2024:{jami:457,  rekord:{oy:'Dekabr',val:55},       osish:'+52%', color:'#1e40af'},
+            2025:{jami:316,  rekord:{oy:'Avgust',val:48},       osish:'+18%', color:'#22c55e'},
+        };
+        function renderDynKpi(key) {
+            const d=dynKpiMeta[key], sub=key==='all'?'Uch yil jami':`${key} yil`;
+            document.getElementById('dynKpiRow').innerHTML=`
+                <div class="dyn-kpi" style="border-left-color:${d.color}">
+                    <div class="dyn-kpi-lbl">Jami jinoyat</div>
+                    <div class="dyn-kpi-val" style="color:${d.color}">${d.jami}</div>
+                    <div class="dyn-kpi-sub">${sub}</div>
+                </div>
+                <div class="dyn-kpi" style="border-left-color:#f97316">
+                    <div class="dyn-kpi-lbl">Rekord oy</div>
+                    <div class="dyn-kpi-val" style="color:#f97316">${d.rekord.val}</div>
+                    <div class="dyn-kpi-sub">${d.rekord.oy}</div>
+                </div>
+                <div class="dyn-kpi" style="border-left-color:#22c55e">
+                    <div class="dyn-kpi-lbl">O\'sish</div>
+                    <div class="dyn-kpi-val" style="color:#22c55e">${d.osish}</div>
+                    <div class="dyn-kpi-sub">avvalgi yilga</div>
+                </div>`;
+        }
+        const dynCtx = document.getElementById('dynamikaChart').getContext('2d');
+        const dynChart = new Chart(dynCtx, {
+            type:'line',
+            data:{labels:months,datasets:[
+                {label:'2023',data:dynData[2023],borderColor:'#93c5fd',backgroundColor:'rgba(147,197,253,0.08)',fill:false,borderWidth:2,tension:.42,pointRadius:3,pointBackgroundColor:'#93c5fd',pointBorderColor:'white',pointBorderWidth:1.5},
+                {label:'2024',data:dynData[2024],borderColor:'#1e40af',backgroundColor:'rgba(30,64,175,0.08)',fill:true,borderWidth:2.8,tension:.42,pointRadius:3,pointBackgroundColor:'#1e40af',pointBorderColor:'white',pointBorderWidth:1.5},
+                {label:'2025',data:dynData[2025],borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,0.08)',fill:false,borderWidth:2,tension:.42,pointRadius:3,borderDash:[5,4],pointBackgroundColor:'#22c55e',pointBorderColor:'white',pointBorderWidth:1.5}
+            ]},
+            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+                plugins:{
+                    legend:{display:true,position:'top',labels:{boxWidth:10,boxHeight:10,borderRadius:3,useBorderRadius:true,font:{size:11,weight:'700',family:'Plus Jakarta Sans'},color:'#64748b',padding:14}},
+                    tooltip:{...TT,callbacks:{title:i=>`${i[0].label}`,label:c=>c.raw!==null?` ${c.dataset.label}: ${c.raw} ta`:` ${c.dataset.label}: —`}}
+                },
+                scales:{y:{display:true,grid:{color:'#f1f5f9'},border:{display:false},ticks:{font:{size:11,weight:'600',family:'Plus Jakarta Sans'},color:'#94a3b8',maxTicksLimit:5}},x:{grid:{display:false},border:{display:false},ticks:{font:{size:11,weight:'600',family:'Plus Jakarta Sans'},color:'#94a3b8'}}}
+            }
+        });
+        renderDynKpi('all');
+        document.getElementById('dynTabs').addEventListener('click', e => {
+            const btn = e.target.closest('.tb'); if (!btn) return;
+            document.querySelectorAll('#dynTabs .tb').forEach(b => b.classList.remove('on')); btn.classList.add('on');
+            const key=btn.dataset.k;
+            renderDynKpi(key);
+            const yrs=[2023,2024,2025], cols={2023:'#93c5fd',2024:'#1e40af',2025:'#22c55e'}, fills={2023:'rgba(147,197,253,0.09)',2024:'rgba(30,64,175,0.08)',2025:'rgba(34,197,94,0.08)'};
+            if(key==='all'){
+                dynChart.data.datasets.forEach(ds=>{ds.hidden=false;});
+                dynChart.data.datasets[0].borderWidth=2; dynChart.data.datasets[0].pointRadius=3; dynChart.data.datasets[0].fill=false;
+                dynChart.data.datasets[1].borderWidth=2.8; dynChart.data.datasets[1].pointRadius=3; dynChart.data.datasets[1].fill=true;
+                dynChart.data.datasets[2].borderWidth=2; dynChart.data.datasets[2].pointRadius=3; dynChart.data.datasets[2].fill=false;
+                dynChart.options.plugins.legend.display=true;
+            } else {
+                const y=+key;
+                dynChart.data.datasets.forEach((ds,i)=>{
+                    const active=yrs[i]===y; ds.hidden=!active;
+                    if(active){ds.borderColor=cols[yrs[i]];ds.backgroundColor=fills[yrs[i]];ds.fill=true;ds.borderWidth=3;ds.pointRadius=5;ds.borderDash=yrs[i]===2025?[5,4]:[];}
+                });
+                dynChart.options.plugins.legend.display=false;
+            }
+            dynChart.update('active');
+        });
+
+        new Chart(document.getElementById('genderChart'),{type:'doughnut',data:{datasets:[{data:[391,70],backgroundColor:['#1e40af','#f472b6'],borderWidth:3,borderColor:'white',hoverOffset:6}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.raw} (${Math.round(c.raw/461*100)}%)`}}}}});
+        new Chart(document.getElementById('ageGroupChart'),{type:'doughnut',data:{datasets:[{data:[424,37],backgroundColor:['#1e40af','#f97316'],borderWidth:3,borderColor:'white',hoverOffset:6}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.raw} (${Math.round(c.raw/461*100)}%)`}}}}});
+        new Chart(document.getElementById('eduChart'),{type:'doughnut',data:{datasets:[{data:[92,369],backgroundColor:['#1e40af','#93c5fd'],borderWidth:3,borderColor:'white',hoverOffset:6}]},options:{cutout:'72%',plugins:{legend:{display:false},tooltip:{...TT,callbacks:{label:c=>` ${c.raw} (${Math.round(c.raw/461*100)}%)`}}}}});
+        new Chart(document.getElementById('sevChart'),{type:'bar',data:{labels:[''],datasets:[
+            {label:'Ijtimoiy xavfi kam',data:[30],backgroundColor:'#3b82f6',borderRadius:{topLeft:5,bottomLeft:5,topRight:0,bottomRight:0},borderSkipped:false},
+            {label:"Uncha og'ir emas",data:[40],backgroundColor:'#22c55e',borderRadius:0,borderSkipped:false},
+            {label:"Og'ir",data:[20],backgroundColor:'#f97316',borderRadius:0,borderSkipped:false},
+            {label:"O'ta og'ir",data:[10],backgroundColor:'#ef4444',borderRadius:{topRight:5,bottomRight:5,topLeft:0,bottomLeft:0},borderSkipped:false}
+        ]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:8,boxHeight:8,borderRadius:2,useBorderRadius:true,font:{size:9.5,weight:'700',family:'Plus Jakarta Sans'},color:'#64748b',padding:8}},tooltip:{...TT,callbacks:{label:c=>` ${c.dataset.label}: ${c.raw}%`}}},scales:{x:{display:false,stacked:true,min:0,max:100},y:{display:false,stacked:true}}}});
+
+        /* ══ YOSH TAQSIMOTI — har bir yosh 14-100 ══ */
+        const ageYears = [];
+        for (let a = 14; a <= 100; a++) ageYears.push(a);
+
+        const ageMaleData = ageYears.map(age => {
+            let base = 0;
+            if (age>=14&&age<=18) base=2+Math.floor((age-14)*1.2);
+            else if (age>=19&&age<=28) base=8+Math.floor((age-19)*1.8);
+            else if (age>=29&&age<=40) base=24-Math.floor((age-28)*1.2);
+            else if (age>=41&&age<=55) base=10-Math.floor((age-40)*0.4);
+            else if (age>=56&&age<=70) base=4-Math.floor((age-55)*0.2);
+            else base=1;
+            return Math.max(0, base);
+        });
+        const ageFemaleData = ageYears.map((age,i) => Math.max(0, Math.round(ageMaleData[i]*0.15+(Math.random()>0.5?1:0))));
+
+        const ageCtx = document.getElementById('ageChart').getContext('2d');
+        const ageChart = new Chart(ageCtx, {
+            type:'bar',
+            data:{labels:ageYears.map(String),datasets:[
+                {label:'Erkak',data:ageMaleData,backgroundColor:'rgba(30,64,175,0.82)',borderRadius:3,borderSkipped:false},
+                {label:'Ayol',data:ageFemaleData,backgroundColor:'rgba(244,114,182,0.82)',borderRadius:3,borderSkipped:false}
+            ]},
+            options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+                plugins:{legend:{display:false},tooltip:{...TT,callbacks:{title:items=>`${items[0].label} yosh`,label:c=>` ${c.dataset.label}: ${c.raw} kishi`}}},
+                scales:{
+                    x:{grid:{display:false},border:{display:false},ticks:{font:{size:9,weight:'600',family:'Plus Jakarta Sans'},color:'#94a3b8',maxRotation:0,callback:function(val,index){const age=ageYears[index];return age%5===0?age:''}},barPercentage:0.85,categoryPercentage:0.7},
+                    y:{display:true,grid:{color:'#f1f5f9'},border:{display:false},ticks:{font:{size:11,weight:'600',family:'Plus Jakarta Sans'},color:'#94a3b8',maxTicksLimit:5}}
+                }}
+        });
+
+        const ageLegendConfigs = {
+            all:`<div class="age-leg-item"><div class="age-leg-dot" style="background:#1e40af"></div>Erkak</div><div class="age-leg-item"><div class="age-leg-dot" style="background:#f472b6"></div>Ayol</div>`,
+            m:`<div class="age-leg-item"><div class="age-leg-dot" style="background:#1e40af"></div>Erkak</div>`,
+            f:`<div class="age-leg-item"><div class="age-leg-dot" style="background:#f472b6"></div>Ayol</div>`
+        };
+        document.getElementById('age5tabs').addEventListener('click', e => {
+            const btn = e.target.closest('.tb'); if (!btn) return;
+            document.querySelectorAll('#age5tabs .tb').forEach(b => b.classList.remove('on')); btn.classList.add('on');
+            const k = btn.dataset.k;
+            document.getElementById('ageLegend').innerHTML = ageLegendConfigs[k];
+            if (k==='all') ageChart.data.datasets=[{label:'Erkak',data:ageMaleData,backgroundColor:'rgba(30,64,175,0.82)',borderRadius:3,borderSkipped:false},{label:'Ayol',data:ageFemaleData,backgroundColor:'rgba(244,114,182,0.82)',borderRadius:3,borderSkipped:false}];
+            else if (k==='m') ageChart.data.datasets=[{label:'Erkak',data:ageMaleData,backgroundColor:'rgba(30,64,175,0.82)',borderRadius:3,borderSkipped:false}];
+            else ageChart.data.datasets=[{label:'Ayol',data:ageFemaleData,backgroundColor:'rgba(244,114,182,0.82)',borderRadius:3,borderSkipped:false}];
+            ageChart.update('active');
+        });
+
+        const moddaData = {
+            all:[{n:'279-modda',v:55},{n:'171-modda',v:48},{n:'222-modda',v:44},{n:'99-modda',v:40},{n:'139-modda',v:38},{n:'225-modda',v:35},{n:'106-modda',v:32},{n:'118-modda',v:30},{n:'234-modda',v:28},{n:'145-modda',v:26},{n:'160-modda',v:24},{n:'172-modda',v:22},{n:'185-modda',v:20},{n:'241-modda',v:19},{n:'293-modda',v:18},{n:'219-modda',v:17},{n:'236-modda',v:16},{n:'247-modda',v:15},{n:'250-modda',v:14},{n:'300-modda',v:13},{n:'210-modda',v:12},{n:'242-modda',v:11},{n:'129-modda',v:10},{n:'212-modda',v:9},{n:'260-modda',v:8},{n:'128-modda',v:7},{n:'131-modda',v:7},{n:'221-modda',v:6},{n:'267-modda',v:5},{n:'138-modda',v:4}],
+            m:[{n:'279-modda',v:47},{n:'171-modda',v:41},{n:'222-modda',v:38},{n:'99-modda',v:35},{n:'139-modda',v:33},{n:'225-modda',v:30},{n:'106-modda',v:28},{n:'118-modda',v:26},{n:'234-modda',v:24},{n:'145-modda',v:22},{n:'160-modda',v:20},{n:'172-modda',v:19},{n:'185-modda',v:17},{n:'241-modda',v:16},{n:'293-modda',v:15},{n:'219-modda',v:14},{n:'236-modda',v:13},{n:'247-modda',v:12},{n:'250-modda',v:11},{n:'300-modda',v:10},{n:'210-modda',v:9},{n:'242-modda',v:8},{n:'129-modda',v:7},{n:'212-modda',v:6},{n:'260-modda',v:5},{n:'128-modda',v:4},{n:'131-modda',v:4},{n:'221-modda',v:3},{n:'267-modda',v:3},{n:'138-modda',v:2}],
+            f:[{n:'279-modda',v:8},{n:'171-modda',v:7},{n:'222-modda',v:6},{n:'99-modda',v:5},{n:'139-modda',v:5},{n:'225-modda',v:5},{n:'106-modda',v:4},{n:'118-modda',v:4},{n:'234-modda',v:4},{n:'145-modda',v:4},{n:'160-modda',v:4},{n:'172-modda',v:3},{n:'185-modda',v:3},{n:'241-modda',v:3},{n:'293-modda',v:3},{n:'219-modda',v:3},{n:'236-modda',v:3},{n:'247-modda',v:3},{n:'250-modda',v:3},{n:'300-modda',v:3},{n:'210-modda',v:3},{n:'242-modda',v:3},{n:'129-modda',v:3},{n:'212-modda',v:3},{n:'260-modda',v:3},{n:'128-modda',v:3},{n:'131-modda',v:3},{n:'221-modda',v:3},{n:'267-modda',v:2},{n:'138-modda',v:2}]
+        };
+        const moddaColors={all:'#1e40af',m:'#3b82f6',f:'#f472b6'};
+        function renderModda(key){const list=moddaData[key],mx=Math.max(...list.map(d=>d.v)),c=moddaColors[key];document.getElementById('moddaList').innerHTML=list.map(d=>`<div class="mrow-mod"><span class="mname-mod">${d.n}</span><div class="mtrack-mod"><div class="mfill-mod" style="width:${Math.round(d.v/mx*100)}%;background:${c}"></div></div><span class="mnum-mod">${d.v}</span></div>`).join('');}
+        renderModda('all');
+        document.getElementById('modda6tabs').addEventListener('click',e=>{const btn=e.target.closest('.tb');if(!btn)return;document.querySelectorAll('#modda6tabs .tb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderModda(btn.dataset.k);});
+
+        const regionRank=[{name:'Toshkent shahri',v:89},{name:"Farg'ona v-ti",v:74},{name:'Samarqand v-ti',v:68},{name:'Andijon v-ti',v:61},{name:'Qashqadaryo v-ti',v:54},{name:'Namangan v-ti',v:47},{name:'Toshkent v-ti',v:43},{name:'Surxondaryo v-ti',v:37},{name:'Buxoro v-ti',v:31},{name:"Xorazm v-ti",v:26},{name:'Navoiy v-ti',v:18},{name:"Qoraqalpog'iston",v:16},{name:'Jizzax v-ti',v:12},{name:'Sirdaryo v-ti',v:8}];
+        function rrColor(i){return i<3?'#ef4444':i<7?'#1e40af':'#94a3b8';}
+        function renderRegionRank(){const mx=regionRank[0].v;document.getElementById('regionRankList').innerHTML=regionRank.map((d,i)=>{const pct=Math.round(d.v/mx*100),c=rrColor(i);return`<div class="mrow"><span class="mname" style="display:flex;align-items:center;gap:6px"><span style="font-size:9.5px;font-weight:800;color:${c};width:16px;text-align:center;flex-shrink:0">${i+1}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">${d.name}</span></span><div class="mtrack"><div class="mfill" style="width:${pct}%;background:${c}"></div></div><span class="mnum">${d.v}</span></div>`;}).join('');}
+        renderRegionRank();
+
+        const REGIONS_URL='https://raw.githubusercontent.com/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UZB/ADM1/geoBoundaries-UZB-ADM1_simplified.geojson';
+        const DISTRICTS_URL='https://raw.githubusercontent.com/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UZB/ADM2/geoBoundaries-UZB-ADM2_simplified.geojson';
+        const regionCrime={'Toshkent':89,"Farg'ona":74,'Samarqand':68,'Andijon':61,'Qashqadaryo':54,'Namangan':47,'Toshkent viloyati':43,'Surxondaryo':37,'Buxoro':31,'Xorazm':26,'Navoiy':18,"Qoraqalpog'iston":16,'Jizzax':12,'Sirdaryo':8};
+        const nameMap={'Toshkent':'Toshkent shahri','Toshkent Province':'Toshkent viloyati','Fergana':"Farg'ona viloyati",'Andijan':'Andijon viloyati','Namangan':'Namangan viloyati','Samarkand':'Samarqand viloyati','Bukhara':'Buxoro viloyati','Khorezm':'Xorazm viloyati','Karakalpakstan':"Qoraqalpog'iston",'Navoi':'Navoiy viloyati','Jizzakh':'Jizzax viloyati','Sirdarya':'Sirdaryo viloyati','Surkhandarya':'Surxondaryo viloyati','Kashkadarya':'Qashqadaryo viloyati'};
+        const regionPop={'Toshkent shahri':{pop:'2.9M',dist:'11'},'Toshkent viloyati':{pop:'2.9M',dist:'14'},"Farg'ona viloyati":{pop:'3.7M',dist:'15'},'Andijon viloyati':{pop:'3.2M',dist:'14'},'Namangan viloyati':{pop:'2.8M',dist:'11'},'Samarqand viloyati':{pop:'4.0M',dist:'14'},'Buxoro viloyati':{pop:'1.9M',dist:'11'},'Xorazm viloyati':{pop:'1.9M',dist:'10'},"Qoraqalpog'iston":{pop:'2.0M',dist:'14'},'Navoiy viloyati':{pop:'1.1M',dist:'8'},'Jizzax viloyati':{pop:'1.4M',dist:'12'},'Sirdaryo viloyati':{pop:'0.9M',dist:'8'},'Surxondaryo viloyati':{pop:'2.6M',dist:'13'},'Qashqadaryo viloyati':{pop:'3.3M',dist:'14'}};
+        function getCrimeValue(s){for(const[k,v]of Object.entries(regionCrime)){if(s&&s.toLowerCase().includes(k.toLowerCase().split(' ')[0]))return v;}return Math.floor(Math.random()*60+10);}
+        function getColor(v){return v>80?'#1e40af':v>60?'#2563eb':v>40?'#3b82f6':v>25?'#60a5fa':v>12?'#93c5fd':'#dbeafe';}
+        function getUzName(s){for(const[en,uz]of Object.entries(nameMap)){if(s&&s.toLowerCase().includes(en.toLowerCase().split(' ')[0]))return uz;}return s||"Noma'lum";}
+        const leafMap=L.map('map-canvas',{center:[41.3,63.5],zoom:5,zoomControl:false,attributionControl:false});
+        document.getElementById('zoom-in').addEventListener('click',()=>leafMap.zoomIn());
+        document.getElementById('zoom-out').addEventListener('click',()=>leafMap.zoomOut());
+        document.getElementById('zoom-reset').addEventListener('click',()=>{leafMap.flyTo([41.3,63.5],5,{duration:0.8});if(districtLayer){leafMap.removeLayer(districtLayer);districtLayer=null;}regionLayer.addTo(leafMap);document.getElementById('back-map').classList.remove('show');resetRegionHeader();});
+        let regionLayer=null,districtLayer=null,allDistricts=null;
+        fetch(DISTRICTS_URL).then(r=>r.json()).then(d=>{allDistricts=d;}).catch(e=>console.warn(e));
+        fetch(REGIONS_URL).then(r=>r.json()).then(data=>{
+            regionLayer=L.geoJSON(data,{
+                style:f=>({fillColor:getColor(getCrimeValue(f.properties.shapeName)),fillOpacity:0.75,color:'rgba(255,255,255,0.9)',weight:1.5}),
+                onEachFeature:(f,layer)=>{
+                    const shapeName=f.properties.shapeName,uzName=getUzName(shapeName),v=getCrimeValue(shapeName),rd=regionPop[uzName]||{};
+                    layer.bindTooltip(`<div style="font-family:'Plus Jakarta Sans',sans-serif;padding:6px 4px"><div style="font-weight:800;font-size:13px;color:#1e293b">${uzName}</div>${rd.pop?`<div style="font-size:11px;color:#64748b;margin-top:2px">Aholi: <b style="color:#1e40af">${rd.pop}</b></div>`:''}<div style="font-size:11px;color:#64748b">Jinoyat: <b style="color:#1e40af">${v}</b></div><div style="font-size:10px;color:#94a3b8;margin-top:3px">Bosing — batafsil ko'ring</div></div>`,{sticky:true,className:'cmai-tooltip'});
+                    layer.on('mouseover',function(){this.setStyle({fillOpacity:0.95,weight:2.5,color:'#fbbf24'});});
+                    layer.on('mouseout',function(){regionLayer.resetStyle(this);});
+                    layer.on('click',function(){
+                        const self=this;
+                        leafMap.flyToBounds(self.getBounds(),{padding:[30,30],duration:0.7,maxZoom:8});
+                        document.getElementById('rp-region-name').textContent=uzName;
+                        const rdInfo=regionPop[uzName];if(rdInfo)document.getElementById('rp-region-sub').textContent=rdInfo.dist+' tuman · aholi '+rdInfo.pop;
+                        document.getElementById('back-map').classList.add('show');
+                        setTimeout(()=>{
+                            if(districtLayer){leafMap.removeLayer(districtLayer);districtLayer=null;}
+                            leafMap.removeLayer(regionLayer);
+                            if(allDistricts){
+                                const rBounds=self.getBounds();
+                                const filtered={type:'FeatureCollection',features:allDistricts.features.filter(df=>{if(!df.geometry)return false;try{const c=L.geoJSON(df).getBounds().getCenter();return rBounds.pad(0.05).contains(c);}catch(e){return false;}})};
+                                if(filtered.features.length>0){
+                                    districtLayer=L.geoJSON(filtered,{style:df=>({fillColor:getColor(Math.floor(Math.random()*70+10)),fillOpacity:0.7,color:'rgba(255,255,255,0.9)',weight:1}),onEachFeature:(df,dlayer)=>{const dName=df.properties.shapeName||'Tuman',dVal=Math.floor(Math.random()*70+5);dlayer.bindTooltip(`<div style="font-family:'Plus Jakarta Sans',sans-serif;padding:5px 3px"><div style="font-weight:800;font-size:12px;color:#1e293b">${dName}</div><div style="font-size:10px;color:#64748b">Jinoyat: <b style="color:#1e40af">${dVal}</b></div></div>`,{sticky:true,className:'cmai-tooltip'});dlayer.on('mouseover',function(){this.setStyle({fillOpacity:0.95,weight:2,color:'#fbbf24'});});dlayer.on('mouseout',function(){if(districtLayer)districtLayer.resetStyle(this);});dlayer.on('click',function(){leafMap.flyToBounds(this.getBounds(),{padding:[40,40],duration:0.6,maxZoom:11});document.getElementById('rp-region-name').textContent=dName;document.getElementById('rp-region-sub').textContent=uzName+' · '+dVal+' ta jinoyat';});}}).addTo(leafMap);
+                                }
+                            }
+                        },750);
+                    });
+                }
+            }).addTo(leafMap);
+            leafMap.fitBounds(regionLayer.getBounds(),{padding:[10,10]});
+        }).catch(e=>{document.getElementById('map-canvas').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:13px">Xarita yuklanmadi — internet aloqasini tekshiring</div>';});
+        function resetRegionHeader(){document.getElementById('rp-region-name').textContent="O'zbekiston Respublikasi";document.getElementById('rp-region-sub').textContent='Barcha viloyatlar · umumiy statistika';}
+        document.getElementById('back-map').addEventListener('click',()=>{if(districtLayer){leafMap.removeLayer(districtLayer);districtLayer=null;}regionLayer.addTo(leafMap);leafMap.flyToBounds(regionLayer.getBounds(),{padding:[10,10],duration:0.7});document.getElementById('back-map').classList.remove('show');resetRegionHeader();});
+
+        (function(){
+            const listItems=Array.from(document.querySelectorAll('#gooeyNavList > li'));
+            const particleLayer=document.getElementById('gnavParticleLayer');
+            let activeIndex=-1;
+            const COLORS=['#1e40af','#2563eb','#3b82f6','#60a5fa','#93c5fd','#1d4ed8','#3b82f6'];
+            function spawnParticles(liEl){const rect=liEl.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2,COUNT=18,RADIUS=55;for(let i=0;i<COUNT;i++){const angle=(360/COUNT)*i+(Math.random()-0.5)*20,rad=angle*Math.PI/180,dist=RADIUS*(0.7+Math.random()*0.7),tx=Math.cos(rad)*dist,ty=Math.sin(rad)*dist,size=4+Math.random()*5,dur=0.55+Math.random()*0.45,delay=Math.random()*80,color=COLORS[Math.floor(Math.random()*COLORS.length)];const dot=document.createElement('div');dot.className='gnav-dot';dot.style.cssText=`left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 ${size*1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`;particleLayer.appendChild(dot);setTimeout(()=>dot.remove(),(dur+delay/1000+0.1)*1000);}}
+            function activateItem(index){if(activeIndex===index)return;if(activeIndex>=0&&listItems[activeIndex])listItems[activeIndex].classList.remove('active');activeIndex=index;listItems[index].classList.add('active');spawnParticles(listItems[index]);}
+            listItems.forEach((li,i)=>{li.addEventListener('click',()=>activateItem(i));});
+            requestAnimationFrame(()=>{requestAnimationFrame(()=>{const page=location.pathname.split('/').pop().replace('.html','')||'index';let found=0;listItems.forEach((li,i)=>{const a=li.querySelector('a[data-page]');if(a&&a.dataset.page===page)found=i;});activeIndex=found;listItems[found].classList.add('active');});});
+        })();
+
+        setTimeout(()=>lucide.createIcons(),200);
+
+        (function(){
+            const DUR=480,EASE='cubic-bezier(0.32,0.72,0,1)',EASE_OUT='cubic-bezier(0.4,0,0.2,1)';
+            let srcEl=null,modalEl=null,overlayEl=null,busy=false;
+            function makeOverlay(){const ov=document.createElement('div');ov.style.cssText=`position:fixed;inset:0;z-index:9000;background:rgba(15,23,64,0.5);backdrop-filter:blur(5px);opacity:0;transition:opacity ${DUR}ms ${EASE_OUT};cursor:pointer;`;ov.addEventListener('click',closeModal);document.body.appendChild(ov);requestAnimationFrame(()=>ov.style.opacity='1');return ov;}
+            function openModal(el){if(busy||modalEl)return;busy=true;srcEl=el;
+                const r=el.getBoundingClientRect(),vpW=window.innerWidth,vpH=window.innerHeight,
+                      mW=Math.min(vpW*0.9,840),mH=Math.min(vpH*0.88,800),mX=(vpW-mW)/2,mY=(vpH-mH)/2;
+                const modal=document.createElement('div');
+                modal.style.cssText=`position:fixed;z-index:9001;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 8px 32px rgba(30,64,175,0.15);cursor:default;`;
+                const head=el.querySelector('.bp-head,.rp-head'),body=el.querySelector('.bp-body,.rp-body');
+                if(head&&body){
+                    const wrap=document.createElement('div');
+                    wrap.style.cssText=`display:flex;flex-direction:column;height:100%`;
+                    const hWrap=document.createElement('div');
+                    hWrap.style.cssText=`padding:20px 24px 16px;border-bottom:1px solid #e2e8f0;flex-shrink:0;background:#fff`;
+                    const bWrap=document.createElement('div');
+                    bWrap.style.cssText=`padding:22px 24px;flex:1;overflow-y:auto;background:#fff`;
+                    hWrap.appendChild(head);
+                    bWrap.appendChild(body);
+                    wrap.appendChild(hWrap);
+                    wrap.appendChild(bWrap);
+                    modal.appendChild(wrap);
+                } else {
+                    const wrap=document.createElement('div');
+                    wrap.style.cssText=`padding:48px 24px 24px;height:100%;overflow-y:auto;background:#fff`;
+                    while(el.firstChild) wrap.appendChild(el.firstChild);
+                    modal.appendChild(wrap);
+                }
+                const closeBtn=document.createElement('button');closeBtn.innerHTML='✕';closeBtn.style.cssText=`position:absolute;top:14px;right:14px;z-index:10;width:30px;height:30px;border-radius:50%;background:rgba(30,64,175,0.1);border:none;cursor:pointer;font-size:13px;color:#1e40af;display:flex;align-items:center;justify-content:center;transition:background 0.2s;opacity:0;`;closeBtn.addEventListener('click',e=>{e.stopPropagation();closeModal();});
+                modal.appendChild(closeBtn);document.body.appendChild(modal);modalEl=modal;overlayEl=makeOverlay();
+                el.style.visibility='hidden';el.style.pointerEvents='none';el.style.minHeight=r.height+'px';
+                requestAnimationFrame(()=>{requestAnimationFrame(()=>{modal.style.transition=`left ${DUR}ms ${EASE},top ${DUR}ms ${EASE},width ${DUR}ms ${EASE},height ${DUR}ms ${EASE},border-radius ${DUR}ms ${EASE},box-shadow ${DUR}ms ease`;modal.style.left=mX+'px';modal.style.top=mY+'px';modal.style.width=mW+'px';modal.style.height=mH+'px';modal.style.borderRadius='24px';modal.style.boxShadow='0 32px 80px rgba(30,64,175,0.3)';setTimeout(()=>{closeBtn.style.transition='opacity 0.2s,background 0.2s';closeBtn.style.opacity='1';},DUR*0.7);setTimeout(()=>{const ch=modal.scrollHeight;modal.style.transition='none';modal.style.height=ch+'px';modal.style.top=((vpH-ch)/2)+'px';busy=false;},DUR);});});}
+            function closeModal(){if(busy||!modalEl||!srcEl)return;busy=true;
+                const modal=modalEl,src=srcEl,ov=overlayEl;modalEl=null;srcEl=null;overlayEl=null;
+                ov.style.opacity='0';setTimeout(()=>ov.remove(),DUR);
+                const btn=modal.querySelector('button');if(btn)btn.style.opacity='0';
+                const curH=modal.offsetHeight,curT=parseFloat(modal.style.top);
+                const r=src.getBoundingClientRect();
+                modal.style.height=curH+'px';modal.style.top=curT+'px';
+                requestAnimationFrame(()=>{modal.style.transition=`left ${DUR}ms ${EASE_OUT},top ${DUR}ms ${EASE_OUT},width ${DUR}ms ${EASE_OUT},height ${DUR}ms ${EASE_OUT},border-radius ${DUR}ms ${EASE_OUT},box-shadow ${DUR}ms ease,opacity ${DUR*0.4}ms ease ${DUR*0.55}ms`;modal.style.left=r.left+'px';modal.style.top=r.top+'px';modal.style.width=r.width+'px';modal.style.height=r.height+'px';modal.style.borderRadius='20px';modal.style.boxShadow='0 8px 32px rgba(30,64,175,0.1)';modal.style.opacity='0';});
+                setTimeout(()=>{
+                    const head=modal.querySelector('.bp-head,.rp-head'),body=modal.querySelector('.bp-body,.rp-body');
+                    if(head&&body){src.appendChild(head);src.appendChild(body);}
+                    else{while(modal.firstChild)src.appendChild(modal.firstChild);}
+                    modal.remove();src.style.visibility='';src.style.pointerEvents='';src.style.minHeight='';busy=false;
+                },DUR+150);}
+            document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+            function attach(){const skip='button,a,input,select,canvas,.ytab,.tb,.zb,#back-map';document.querySelectorAll('.sc').forEach(el=>{if(el._flipAttached)return;el._flipAttached=true;el.style.cursor='pointer';el.addEventListener('click',function(e){if(e.target.closest(skip))return;e.stopPropagation();openModal(this);});});document.querySelectorAll('.panel:not(.map-wrap)').forEach(el=>{if(el._flipAttached)return;el._flipAttached=true;el.style.cursor='pointer';el.addEventListener('click',function(e){if(e.target.closest(skip))return;if(e.target.closest('.sc'))return;openModal(this);});});}
+            setTimeout(attach,700);
+        })();
+    </script>
+</body>
+</html>
