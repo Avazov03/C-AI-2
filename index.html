@@ -1734,54 +1734,8 @@
         document.getElementById('zoom-in').addEventListener('click', () => leafMap.zoomIn());
         document.getElementById('zoom-out').addEventListener('click', () => leafMap.zoomOut());
         document.getElementById('zoom-reset').addEventListener('click', () => { leafMap.flyTo([41.3, 63.5], 5, { duration: 0.8 }); if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; } regionLayer.addTo(leafMap); document.getElementById('back-map').classList.remove('show'); resetRegionHeader(); });
-        let regionLayer = null, districtLayer = null, allDistricts = null, districtsLoading = false;
-
-        function showDistricts(regionLayer_feature, uzName) {
-            if (!allDistricts) {
-                document.getElementById('rp-region-sub').textContent = 'Tumanlar yuklanmoqda...';
-                const wait = setInterval(() => {
-                    if (allDistricts) { clearInterval(wait); showDistricts(regionLayer_feature, uzName); }
-                }, 200);
-                return;
-            }
-            const rBounds = regionLayer_feature.getBounds();
-            const filtered = {
-                type: 'FeatureCollection', features: allDistricts.features.filter(df => {
-                    if (!df.geometry) return false;
-                    try {
-                        const c = L.geoJSON(df).getBounds().getCenter();
-                        return rBounds.pad(0.05).contains(c);
-                    } catch (e) { return false; }
-                })
-            };
-            if (filtered.features.length === 0) return;
-
-            districtLayer = L.geoJSON(filtered, {
-                style: df => ({
-                    fillColor: getColor(Math.floor(Math.random() * 70 + 10)),
-                    fillOpacity: 0.72,
-                    color: 'rgba(255,255,255,0.9)',
-                    weight: 1
-                }),
-                onEachFeature: (df, dlayer) => {
-                    const dName = df.properties.shapeName || df.properties.NAME_2 || 'Tuman';
-                    const dVal = Math.floor(Math.random() * 70 + 5);
-                    dlayer.bindTooltip(`<div style="font-family:'Plus Jakarta Sans',sans-serif;padding:5px 3px"><div style="font-weight:800;font-size:12px;color:#1e293b">${dName}</div><div style="font-size:10px;color:#64748b">Jinoyat: <b style="color:#1e40af">${dVal}</b></div><div style="font-size:10px;color:#94a3b8;margin-top:2px">Bosing — batafsil</div></div>`, { sticky: true, className: 'cmai-tooltip' });
-                    dlayer.on('mouseover', function () { this.setStyle({ fillOpacity: 0.95, weight: 2, color: '#fbbf24' }); });
-                    dlayer.on('mouseout', function () { if (districtLayer) districtLayer.resetStyle(this); });
-                    dlayer.on('click', function () {
-                        leafMap.flyToBounds(this.getBounds(), { padding: [40, 40], duration: 0.6, maxZoom: 11 });
-                        document.getElementById('rp-region-name').textContent = dName;
-                        document.getElementById('rp-region-sub').textContent = uzName + ' · ' + dVal + ' ta jinoyat';
-                    });
-                }
-            }).addTo(leafMap);
-
-            const rdInfo = regionPop[uzName];
-            if (rdInfo) document.getElementById('rp-region-sub').textContent = rdInfo.dist + ' tuman · aholi ' + rdInfo.pop;
-        }
-
-        fetch(DISTRICTS_URL).then(r => r.json()).then(d => { allDistricts = d; }).catch(e => console.warn('Districts load error:', e));
+        let regionLayer = null, districtLayer = null, allDistricts = null;
+        fetch(DISTRICTS_URL).then(r => r.json()).then(d => { allDistricts = d; }).catch(e => console.warn(e));
         fetch(REGIONS_URL).then(r => r.json()).then(data => {
             regionLayer = L.geoJSON(data, {
                 style: f => ({ fillColor: getColor(getCrimeValue(f.properties.shapeName)), fillOpacity: 0.75, color: 'rgba(255,255,255,0.9)', weight: 1.5 }),
@@ -1792,29 +1746,28 @@
                     layer.on('mouseout', function () { regionLayer.resetStyle(this); });
                     layer.on('click', function () {
                         const self = this;
-                        document.getElementById('rp-region-name').textContent = uzName;
-                        document.getElementById('rp-region-sub').textContent = 'Tumanlar yuklanmoqda...';
-                        document.getElementById('back-map').classList.add('show');
                         leafMap.flyToBounds(self.getBounds(), { padding: [30, 30], duration: 0.7, maxZoom: 8 });
+                        document.getElementById('rp-region-name').textContent = uzName;
+                        const rdInfo = regionPop[uzName]; if (rdInfo) document.getElementById('rp-region-sub').textContent = rdInfo.dist + ' tuman · aholi ' + rdInfo.pop;
+                        document.getElementById('back-map').classList.add('show');
                         setTimeout(() => {
                             if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; }
                             leafMap.removeLayer(regionLayer);
-                            showDistricts(self, uzName);
+                            if (allDistricts) {
+                                const rBounds = self.getBounds();
+                                const filtered = { type: 'FeatureCollection', features: allDistricts.features.filter(df => { if (!df.geometry) return false; try { const c = L.geoJSON(df).getBounds().getCenter(); return rBounds.pad(0.05).contains(c); } catch (e) { return false; } }) };
+                                if (filtered.features.length > 0) {
+                                    districtLayer = L.geoJSON(filtered, { style: df => ({ fillColor: getColor(Math.floor(Math.random() * 70 + 10)), fillOpacity: 0.7, color: 'rgba(255,255,255,0.9)', weight: 1 }), onEachFeature: (df, dlayer) => { const dName = df.properties.shapeName || 'Tuman', dVal = Math.floor(Math.random() * 70 + 5); dlayer.bindTooltip(`<div style="font-family:'Plus Jakarta Sans',sans-serif;padding:5px 3px"><div style="font-weight:800;font-size:12px;color:#1e293b">${dName}</div><div style="font-size:10px;color:#64748b">Jinoyat: <b style="color:#1e40af">${dVal}</b></div></div>`, { sticky: true, className: 'cmai-tooltip' }); dlayer.on('mouseover', function () { this.setStyle({ fillOpacity: 0.95, weight: 2, color: '#fbbf24' }); }); dlayer.on('mouseout', function () { if (districtLayer) districtLayer.resetStyle(this); }); dlayer.on('click', function () { leafMap.flyToBounds(this.getBounds(), { padding: [40, 40], duration: 0.6, maxZoom: 11 }); document.getElementById('rp-region-name').textContent = dName; document.getElementById('rp-region-sub').textContent = uzName + ' · ' + dVal + ' ta jinoyat'; }); } }).addTo(leafMap);
+                                }
+                            }
                         }, 750);
                     });
                 }
             }).addTo(leafMap);
             leafMap.fitBounds(regionLayer.getBounds(), { padding: [10, 10] });
         }).catch(e => { document.getElementById('map-canvas').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:13px">Xarita yuklanmadi — internet aloqasini tekshiring</div>'; });
-
         function resetRegionHeader() { document.getElementById('rp-region-name').textContent = "O'zbekiston Respublikasi"; document.getElementById('rp-region-sub').textContent = 'Barcha viloyatlar · umumiy statistika'; }
-        document.getElementById('back-map').addEventListener('click', () => {
-            if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; }
-            regionLayer.addTo(leafMap);
-            leafMap.flyToBounds(regionLayer.getBounds(), { padding: [10, 10], duration: 0.7 });
-            document.getElementById('back-map').classList.remove('show');
-            resetRegionHeader();
-        });
+        document.getElementById('back-map').addEventListener('click', () => { if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; } regionLayer.addTo(leafMap); leafMap.flyToBounds(regionLayer.getBounds(), { padding: [10, 10], duration: 0.7 }); document.getElementById('back-map').classList.remove('show'); resetRegionHeader(); });
 
         (function () {
             const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
