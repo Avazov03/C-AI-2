@@ -6,8 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CMAI — Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/drilldown.js"></script>
+    <script src="https://code.highcharts.com/mapdata/countries/uz/uz-all.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -1873,240 +1874,161 @@
         }
         renderRegionRank();
 
-        /* ── MAP (Leaflet) ── */
-        const REGIONS_URL = 'https://raw.githubusercontent.com/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UZB/ADM1/geoBoundaries-UZB-ADM1_simplified.geojson';
-        const DISTRICTS_URL = 'https://raw.githubusercontent.com/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UZB/ADM2/geoBoundaries-UZB-ADM2_simplified.geojson';
-
-        /* Crime mock data */
-        const regionCrime = {
-            'Toshkent': 89, "Farg'ona": 74, 'Samarqand': 68, 'Andijon': 61,
-            'Qashqadaryo': 54, 'Namangan': 47, 'Toshkent viloyati': 43,
-            'Surxondaryo': 37, 'Buxoro': 31, 'Xorazm': 26,
-            'Navoiy': 18, "Qoraqalpog'iston": 16, 'Jizzax': 12, 'Sirdaryo': 8
+        /* ── MAP ── */
+        const regionData = {
+            'uz-tk': { name: 'Toshkent shahri', pop: '2.9M', dist: '11' },
+            'uz-to': { name: 'Toshkent viloyati', pop: '2.9M', dist: '14' },
+            'uz-fa': { name: "Farg'ona viloyati", pop: '3.7M', dist: '15' },
+            'uz-an': { name: 'Andijon viloyati', pop: '3.2M', dist: '14' },
+            'uz-ng': { name: 'Namangan viloyati', pop: '2.8M', dist: '11' },
+            'uz-sa': { name: 'Samarqand viloyati', pop: '4.0M', dist: '14' },
+            'uz-bh': { name: 'Buxoro viloyati', pop: '1.9M', dist: '11' },
+            'uz-kh': { name: "Xorazm viloyati", pop: '1.9M', dist: '10' },
+            'uz-qr': { name: "Qoraqalpog'iston", pop: '2.0M', dist: '14' },
+            'uz-nw': { name: 'Navoiy viloyati', pop: '1.1M', dist: '8' },
+            'uz-ji': { name: 'Jizzax viloyati', pop: '1.4M', dist: '12' },
+            'uz-si': { name: 'Sirdaryo viloyati', pop: '0.9M', dist: '8' },
+            'uz-su': { name: 'Surxondaryo viloyati', pop: '2.6M', dist: '13' },
+            'uz-qa': { name: 'Qashqadaryo viloyati', pop: '3.3M', dist: '14' },
+        };
+        const drilldown = {
+            'uz-fa': { name: "Farg'ona tumanlari", data: [["Farg'ona sh.", 850], ["Qo'qon sh.", 620], ["Marg'ilon sh.", 480], ["Oltiariq", 210], ["Beshariq", 190], ["Rishton", 170]] },
+            'uz-tk': { name: 'Toshkent shahri', data: [['Yunusobod', 750], ['Chilonzor', 680], ['Mirzo Ulugbek', 590], ['Shayxontohur', 520], ['Uchtepa', 460], ['Yakkasaroy', 410]] },
+            'uz-an': { name: 'Andijon tumanlari', data: [["Andijon sh.", 720], ["Asaka", 380], ["Xo'jaobod", 290], ["Baliqchi", 260], ["Buloqboshi", 230], ["Jalolquduq", 210]] },
+            'uz-sa': { name: 'Samarqand tumanlari', data: [["Samarqand sh.", 890], ["Kattaqo'rg'on", 340], ["Urgut", 310], ["Chelak", 240], ["Ishtixon", 220], ["Paxtachi", 190]] },
+            'uz-ng': { name: 'Namangan tumanlari', data: [["Namangan sh.", 760], ["Pop", 280], ["To'raqo'rg'on", 260], ["Mingbuloq", 220], ["Kosonsoy", 200], ["Uychi", 180]] },
+            'uz-qa': { name: 'Qashqadaryo tumanlari', data: [["Qarshi sh.", 680], ["Shahrisabz sh.", 320], ["G'uzor", 280], ["Koson", 240], ["Muborak", 220], ["Nishon", 190]] },
         };
 
-        /* Name mapping: GeoJSON shapeName -> uz name */
-        const nameMap = {
-            'Toshkent': 'Toshkent shahri',
-            'Toshkent Province': 'Toshkent viloyati',
-            'Fergana': "Farg'ona viloyati",
-            'Andijan': 'Andijon viloyati',
-            'Namangan': 'Namangan viloyati',
-            'Samarkand': 'Samarqand viloyati',
-            'Bukhara': 'Buxoro viloyati',
-            'Khorezm': 'Xorazm viloyati',
-            'Karakalpakstan': "Qoraqalpog'iston",
-            'Navoi': 'Navoiy viloyati',
-            'Jizzakh': 'Jizzax viloyati',
-            'Sirdarya': 'Sirdaryo viloyati',
-            'Surkhandarya': 'Surxondaryo viloyati',
-            'Kashkadarya': 'Qashqadaryo viloyati'
-        };
+        const mapGeoData = Highcharts.geojson(Highcharts.maps['countries/uz/uz-all']);
+        mapGeoData.forEach(d => { d.drilldown = d.properties['hc-key']; d.value = Math.floor(Math.random() * 900 + 100); });
 
-        const regionPop = {
-            'Toshkent shahri': { pop: '2.9M', dist: '11' },
-            'Toshkent viloyati': { pop: '2.9M', dist: '14' },
-            "Farg'ona viloyati": { pop: '3.7M', dist: '15' },
-            'Andijon viloyati': { pop: '3.2M', dist: '14' },
-            'Namangan viloyati': { pop: '2.8M', dist: '11' },
-            'Samarqand viloyati': { pop: '4.0M', dist: '14' },
-            'Buxoro viloyati': { pop: '1.9M', dist: '11' },
-            'Xorazm viloyati': { pop: '1.9M', dist: '10' },
-            "Qoraqalpog'iston": { pop: '2.0M', dist: '14' },
-            'Navoiy viloyati': { pop: '1.1M', dist: '8' },
-            'Jizzax viloyati': { pop: '1.4M', dist: '12' },
-            'Sirdaryo viloyati': { pop: '0.9M', dist: '8' },
-            'Surxondaryo viloyati': { pop: '2.6M', dist: '13' },
-            'Qashqadaryo viloyati': { pop: '3.3M', dist: '14' }
-        };
-
-        function getCrimeValue(shapeName) {
-            for (const [k, v] of Object.entries(regionCrime)) {
-                if (shapeName && shapeName.toLowerCase().includes(k.toLowerCase().split(' ')[0])) return v;
+        function setRegionHeader(key) {
+            const rd = regionData[key];
+            if (rd) {
+                document.getElementById('rp-region-name').textContent = rd.name;
+                document.getElementById('rp-region-sub').textContent = rd.dist + ' tuman · aholi ' + rd.pop;
             }
-            return Math.floor(Math.random() * 60 + 10);
         }
-
-        function getColor(v) {
-            return v > 80 ? '#1e40af' : v > 60 ? '#2563eb' : v > 40 ? '#3b82f6' :
-                v > 25 ? '#60a5fa' : v > 12 ? '#93c5fd' : '#dbeafe';
-        }
-
-        function getUzName(shapeName) {
-            for (const [en, uz] of Object.entries(nameMap)) {
-                if (shapeName && shapeName.toLowerCase().includes(en.toLowerCase().split(' ')[0])) return uz;
-            }
-            return shapeName || 'Noma\'lum';
-        }
-
-        /* Init Leaflet map */
-        const leafMap = L.map('map-canvas', {
-            center: [41.3, 63.5],
-            zoom: 5,
-            zoomControl: false,
-            attributionControl: false
-        });
-
-        /* Zoom buttons */
-        document.getElementById('zoom-in').addEventListener('click', () => leafMap.zoomIn());
-        document.getElementById('zoom-out').addEventListener('click', () => leafMap.zoomOut());
-        document.getElementById('zoom-reset').addEventListener('click', () => {
-            leafMap.flyTo([41.3, 63.5], 5, { duration: 0.8 });
-            if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; }
-            regionLayer.addTo(leafMap);
-            document.getElementById('back-map').classList.remove('show');
-            resetRegionHeader();
-        });
-
-        let regionLayer = null;
-        let districtLayer = null;
-        let allDistricts = null;
-
-        /* Load districts GeoJSON first (for drilldown) */
-        fetch(DISTRICTS_URL).then(r => r.json()).then(dData => {
-            allDistricts = dData;
-        }).catch(e => console.warn('Districts load failed:', e));
-
-        /* Load regions */
-        fetch(REGIONS_URL).then(r => r.json()).then(data => {
-            regionLayer = L.geoJSON(data, {
-                style: f => {
-                    const v = getCrimeValue(f.properties.shapeName);
-                    return {
-                        fillColor: getColor(v),
-                        fillOpacity: 0.75,
-                        color: 'rgba(255,255,255,0.9)',
-                        weight: 1.5
-                    };
-                },
-                onEachFeature: (f, layer) => {
-                    const shapeName = f.properties.shapeName;
-                    const uzName = getUzName(shapeName);
-                    const v = getCrimeValue(shapeName);
-                    const rd = regionPop[uzName] || {};
-
-                    layer.bindTooltip(`
-                        <div style="font-family:'Plus Jakarta Sans',sans-serif;padding:6px 4px">
-                            <div style="font-weight:800;font-size:13px;color:#1e293b">${uzName}</div>
-                            ${rd.pop ? `<div style="font-size:11px;color:#64748b;margin-top:2px">Aholi: <b style="color:#1e40af">${rd.pop}</b></div>` : ''}
-                            <div style="font-size:11px;color:#64748b">Jinoyat: <b style="color:#1e40af">${v}</b></div>
-                            <div style="font-size:10px;color:#94a3b8;margin-top:3px">Bosing — batafsil ko'ring</div>
-                        </div>
-                    `, { sticky: true, className: 'cmai-tooltip' });
-
-                    layer.on('mouseover', function () {
-                        this.setStyle({ fillOpacity: 0.95, weight: 2.5, color: '#fbbf24' });
-                    });
-                    layer.on('mouseout', function () {
-                        regionLayer.resetStyle(this);
-                    });
-                    layer.on('click', function () {
-                        /* zoom to region */
-                        leafMap.flyToBounds(this.getBounds(), { padding: [30, 30], duration: 0.7, maxZoom: 8 });
-
-                        /* update right panel */
-                        document.getElementById('rp-region-name').textContent = uzName;
-                        const rdInfo = regionPop[uzName];
-                        if (rdInfo) {
-                            document.getElementById('rp-region-sub').textContent = rdInfo.dist + ' tuman · aholi ' + rdInfo.pop;
-                        }
-                        document.getElementById('back-map').classList.add('show');
-
-                        /* show districts */
-                        if (districtLayer) leafMap.removeLayer(districtLayer);
-                        leafMap.removeLayer(regionLayer);
-
-                        if (allDistricts) {
-                            /* filter districts belonging to this region by bbox */
-                            const rBounds = layer.getBounds();
-                            const filtered = {
-                                type: 'FeatureCollection',
-                                features: allDistricts.features.filter(df => {
-                                    if (!df.geometry) return false;
-                                    try {
-                                        const dl = L.geoJSON(df);
-                                        return rBounds.contains(dl.getBounds().getCenter());
-                                    } catch (e) { return false; }
-                                })
-                            };
-
-                            districtLayer = L.geoJSON(
-                                filtered.features.length > 0 ? filtered : allDistricts,
-                                {
-                                    style: df => ({
-                                        fillColor: getColor(Math.floor(Math.random() * 70 + 10)),
-                                        fillOpacity: 0.7,
-                                        color: 'rgba(255,255,255,0.9)',
-                                        weight: 1
-                                    }),
-                                    onEachFeature: (df, dlayer) => {
-                                        const dName = df.properties.shapeName || 'Tuman';
-                                        const dVal = Math.floor(Math.random() * 70 + 5);
-                                        dlayer.bindTooltip(`
-                                            <div style="font-family:'Plus Jakarta Sans',sans-serif;padding:5px 3px">
-                                                <div style="font-weight:800;font-size:12px;color:#1e293b">${dName}</div>
-                                                <div style="font-size:10px;color:#64748b">Jinoyat: <b style="color:#1e40af">${dVal}</b></div>
-                                            </div>
-                                        `, { sticky: true, className: 'cmai-tooltip' });
-                                        dlayer.on('mouseover', function () {
-                                            this.setStyle({ fillOpacity: 0.95, weight: 2, color: '#fbbf24' });
-                                        });
-                                        dlayer.on('mouseout', function () {
-                                            districtLayer.resetStyle(this);
-                                        });
-                                    }
-                                }
-                            ).addTo(leafMap);
-                        }
-                    });
-                }
-            }).addTo(leafMap);
-
-            /* Fit map to Uzbekistan */
-            leafMap.fitBounds(regionLayer.getBounds(), { padding: [10, 10] });
-        }).catch(e => {
-            console.error('Region GeoJSON load error:', e);
-            document.getElementById('map-canvas').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:13px">Xarita yuklanmadi — internet aloqasini tekshiring</div>';
-        });
-
         function resetRegionHeader() {
             document.getElementById('rp-region-name').textContent = "O'zbekiston Respublikasi";
             document.getElementById('rp-region-sub').textContent = 'Barcha viloyatlar · umumiy statistika';
         }
 
-        document.getElementById('back-map').addEventListener('click', () => {
-            if (districtLayer) { leafMap.removeLayer(districtLayer); districtLayer = null; }
-            regionLayer.addTo(leafMap);
-            leafMap.flyToBounds(regionLayer.getBounds(), { padding: [10, 10], duration: 0.7 });
-            document.getElementById('back-map').classList.remove('show');
-            resetRegionHeader();
+        const mapChart = Highcharts.mapChart('map-canvas', {
+            chart: {
+                backgroundColor: 'transparent', margin: 0, animation: { duration: 500 },
+                events: {
+                    drilldown(e) {
+                        if (!e.seriesOptions) {
+                            const s = drilldown[e.point.drilldown];
+                            if (s) this.addSeriesAsDrilldown(e.point, {
+                                name: s.name, data: s.data,
+                                dataLabels: {
+                                    enabled: true, format: '{point.name}',
+                                    style: { fontSize: '8.5px', fontWeight: '700', textOutline: 'none', color: '#1e293b' }
+                                }
+                            });
+                        }
+                        document.getElementById('back-map').classList.add('show');
+                        setRegionHeader(e.point.drilldown);
+                    },
+                    drillup() {
+                        document.getElementById('back-map').classList.remove('show');
+                        resetRegionHeader();
+                    }
+                }
+            },
+            title: { text: null }, credits: { enabled: false },
+            colorAxis: { min: 0, max: 1000, stops: [[0, '#eff6ff'], [.35, '#93c5fd'], [.7, '#3b82f6'], [1, '#1e40af']] },
+            tooltip: {
+                backgroundColor: 'rgba(255,255,255,.97)', borderWidth: 0, borderRadius: 14,
+                shadow: { color: 'rgba(0,0,0,.12)', offsetX: 0, offsetY: 6, opacity: 1, width: 16 },
+                useHTML: true,
+                formatter() {
+                    const key = this.point?.properties?.['hc-key'];
+                    const rd = regionData[key];
+                    return `<div style="padding:8px 4px;font-family:'Plus Jakarta Sans',sans-serif">
+        <div style="font-weight:800;font-size:13px;color:#1e293b;margin-bottom:4px">${this.point.name}</div>
+        ${rd ? `<div style="font-size:11.5px;color:#64748b">Aholi: <b style="color:#1e40af">${rd.pop}</b></div>
+        <div style="font-size:11.5px;color:#64748b">Tumanlar: <b style="color:#1e40af">${rd.dist}</b></div>` : ''}
+        <div style="font-size:10.5px;color:#94a3b8;margin-top:4px">Bosing — batafsil ko'ring</div>
+      </div>`;
+                }
+            },
+            plotOptions: {
+                map: {
+                    cursor: 'pointer',
+                    states: { hover: { color: '#fbbf24', brightness: 0 } },
+                    dataLabels: {
+                        enabled: true, format: '{point.name}',
+                        style: { fontSize: '8px', fontWeight: '800', textOutline: 'none', color: '#1e2937' }
+                    },
+                    point: {
+                        events: {
+                            click() {
+                                const key = this.properties?.['hc-key'];
+                                setRegionHeader(key);
+                            }
+                        }
+                    }
+                }
+            },
+            series: [{ data: mapGeoData, name: "O'zbekiston", borderWidth: 1.5, borderColor: 'rgba(255,255,255,.9)' }],
+            drilldown: {
+                activeDataLabelStyle: { color: '#1e293b', textDecoration: 'none' },
+                drillUpButton: { theme: { display: 'none' } }
+            }
         });
 
-        /* ════ GOOEY NAV — vanilla JS ════ */
+        document.getElementById('back-map').addEventListener('click', () => mapChart.drillUp());
+        document.getElementById('zoom-in').addEventListener('click', () => mapChart.mapZoom(0.5));
+        document.getElementById('zoom-out').addEventListener('click', () => mapChart.mapZoom(2));
+        document.getElementById('zoom-reset').addEventListener('click', () => mapChart.zoomOut());
+
+        /* ════════════════════════════════════
+           GOOEY NAV — vanilla JS (clean rewrite)
+        ════════════════════════════════════ */
         (function () {
             const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
             const particleLayer = document.getElementById('gnavParticleLayer');
             let activeIndex = -1;
 
+            /* particle colours — CMAI blues */
             const COLORS = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#1d4ed8', '#3b82f6'];
 
             function spawnParticles(liEl) {
                 const rect = liEl.getBoundingClientRect();
                 const cx = rect.left + rect.width / 2;
                 const cy = rect.top + rect.height / 2;
-                const COUNT = 18, RADIUS = 55;
+                const COUNT = 18;
+                const RADIUS = 55;
+
                 for (let i = 0; i < COUNT; i++) {
                     const angle = (360 / COUNT) * i + (Math.random() - 0.5) * 20;
                     const rad = angle * Math.PI / 180;
                     const dist = RADIUS * (0.7 + Math.random() * 0.7);
-                    const tx = Math.cos(rad) * dist, ty = Math.sin(rad) * dist;
+                    const tx = Math.cos(rad) * dist;
+                    const ty = Math.sin(rad) * dist;
                     const size = 4 + Math.random() * 5;
                     const dur = 0.55 + Math.random() * 0.45;
                     const delay = Math.random() * 80;
                     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+
                     const dot = document.createElement('div');
                     dot.className = 'gnav-dot';
-                    dot.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 ${size * 1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`;
+                    dot.style.cssText = `
+                        left: ${cx}px;
+                        top:  ${cy}px;
+                        width:  ${size}px;
+                        height: ${size}px;
+                        background: ${color};
+                        box-shadow: 0 0 ${size * 1.5}px ${color};
+                        --tx: ${tx}px;
+                        --ty: ${ty}px;
+                        --dur: ${dur}s;
+                        animation-delay: ${delay}ms;
+                    `;
                     particleLayer.appendChild(dot);
                     setTimeout(() => dot.remove(), (dur + delay / 1000 + 0.1) * 1000);
                 }
@@ -2114,15 +2036,22 @@
 
             function activateItem(index) {
                 if (activeIndex === index) return;
-                if (activeIndex >= 0 && listItems[activeIndex]) listItems[activeIndex].classList.remove('active');
+
+                /* deactivate old */
+                if (activeIndex >= 0 && listItems[activeIndex]) {
+                    listItems[activeIndex].classList.remove('active');
+                }
+
                 activeIndex = index;
                 const liEl = listItems[index];
                 liEl.classList.add('active');
                 spawnParticles(liEl);
             }
 
+            /* click handlers */
             listItems.forEach((li, i) => {
                 li.addEventListener('click', () => activateItem(i));
+                /* keyboard */
                 li.querySelector('a').addEventListener('keydown', e => {
                     if (e.key === 'Enter' || e.key === ' ') activateItem(i);
                 });
@@ -2137,6 +2066,7 @@
                         const a = li.querySelector('a[data-page]');
                         if (a && a.dataset.page === page) found = i;
                     });
+                    /* activate silently (no particles on load) */
                     activeIndex = found;
                     listItems[found].classList.add('active');
                 });
