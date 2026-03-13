@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMAI — Hududlar tahlili</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #e8edf5;
+            --primary: #1e40af;
+            --pl: #3b82f6;
+            --surface: #fff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --g: 12px;
+            --r: 20px;
+            --hdr: 62px;
+            --glow-color: 30, 64, 175;
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            padding: var(--g);
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+            overflow: hidden;
+        }
+
+        body::-webkit-scrollbar {
+            width: 5px
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.4);
+            border-radius: 99px
+        }
+
+        /* ── PANEL ── */
+        .panel {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: var(--r);
+            box-shadow: 0 8px 32px -10px rgba(30, 64, 175, .15), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            position: relative;
+            overflow: hidden;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 300px;
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* ── HEADER ── */
+        .hdr {
+            height: var(--hdr);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(28px) saturate(1.5);
+            -webkit-backdrop-filter: blur(28px) saturate(1.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--r);
+            box-shadow: 0 2px 24px -6px rgba(30, 64, 175, .12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+            position: relative;
+            z-index: 100;
+            flex-shrink: 0;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 400px;
+        }
+
+        .hdr::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.25)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        .logo-ic {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .55);
+        }
+
+        nav a {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .2s;
+            white-space: nowrap;
+            position: relative
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2.5px;
+            background: var(--primary);
+            border-radius: 99px;
+            transition: width .25s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        nav a:hover {
+            color: var(--text)
+        }
+
+        nav a:hover::after {
+            width: 100%
+        }
+
+        .sbox {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 7px 16px
+        }
+
+        .sbox input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-family: inherit;
+            color: var(--text);
+            width: 120px
+        }
+
+        .nb {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: background .2s
+        }
+
+        .nb:hover {
+            background: #f1f5f9
+        }
+
+        .nd {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 7px;
+            height: 7px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white
+        }
+
+        /* ── GOOEY NAV ── */
+        .gooey-nav-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav {
+            position: relative;
+            transform: translate3d(0, 0, 0.01px);
+            z-index: 3;
+        }
+
+        .gooey-nav-container>nav>ul {
+            display: flex;
+            gap: 2px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav>ul>li {
+            position: relative;
+            cursor: pointer;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li>a {
+            display: block;
+            padding: 7px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+            transition: color 0.25s ease;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>a {
+            color: white;
+        }
+
+        .gooey-nav-container>nav>ul>li>.gnav-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 100vw;
+            background: var(--primary);
+            z-index: 1;
+            transform: scale(0.3);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>.gnav-bg {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #gnavParticleLayer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99999;
+            overflow: visible;
+        }
+
+        .gnav-dot {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: gnavDot var(--dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes gnavDot {
+            0% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* ── SPOTLIGHT ── */
+        #global-spotlight {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.13) 0%, rgba(30, 64, 175, 0.07) 20%, rgba(59, 130, 246, 0.04) 40%, transparent 70%);
+            z-index: 9999;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: multiply;
+            transition: opacity 0.4s ease;
+        }
+
+        .cmai-ripple {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%) scale(0);
+            border: 1.5px solid rgba(30, 64, 175, 0.5);
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.12) 0%, transparent 70%);
+            animation: rippleOut 0.8s cubic-bezier(0.2, 0, 0.6, 1) forwards;
+        }
+
+        @keyframes rippleOut {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ── MAIN LAYOUT ── */
+        .page-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 1fr;
+            gap: var(--g);
+            min-height: 0;
+        }
+
+        /* ── LEFT FILTER PANEL ── */
+        .filter-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .filter-col::-webkit-scrollbar {
+            width: 4px
+        }
+
+        .filter-col::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.2);
+            border-radius: 99px
+        }
+
+        .fp-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .fp-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .fp-title .badge {
+            font-size: 9px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 700;
+        }
+
+        .fp-body {
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .flbl {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .fsel-full {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+
+        .fsel-full:focus {
+            border-color: var(--primary);
+        }
+
+        .fdate {
+            display: flex;
+            gap: 7px;
+        }
+
+        .fdate input {
+            flex: 1;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .fdate input:focus {
+            border-color: var(--primary);
+        }
+
+        /* type checkboxes */
+        .fcheck-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .fcheck-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .fcheck-item input {
+            display: none;
+        }
+
+        .fcheck-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 5px;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+        }
+
+        .fcheck-item input:checked+.fcheck-box {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .fcheck-item input:checked+.fcheck-box::after {
+            content: '✓';
+            font-size: 10px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .fcheck-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .fcheck-lbl {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .fcheck-cnt {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .fapply {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all .2s;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .5);
+        }
+
+        .fapply:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px -4px rgba(30, 64, 175, .6);
+        }
+
+        .freset {
+            width: 100%;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+            margin-top: 6px;
+        }
+
+        .freset:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+
+        /* stat mini cards */
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+        }
+
+        .mini-stat {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 13px;
+            padding: 11px 13px;
+        }
+
+        .ms-val {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .ms-lbl {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        /* ── MAP PANEL ── */
+        .map-col {
+            position: relative;
+            border-radius: var(--r);
+            overflow: hidden;
+        }
+
+        #crime-map {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* map overlays */
+        .map-top-bar {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 500;
+            background: rgba(255, 255, 255, .96);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 5px 20px -4px rgba(0, 0, 0, .13);
+            backdrop-filter: blur(10px);
+            padding: 8px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .mtb-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .mtb-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .mtb-divider {
+            width: 1px;
+            height: 16px;
+            background: var(--border);
+        }
+
+        .map-zoom-ctrl {
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            z-index: 500;
+            background: rgba(255, 255, 255, .96);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            box-shadow: 0 5px 16px -4px rgba(0, 0, 0, .12);
+            backdrop-filter: blur(8px);
+            overflow: hidden;
+        }
+
+        .mzb {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text);
+            transition: background .2s;
+            font-family: inherit;
+        }
+
+        .mzb:hover {
+            background: #f8fafc
+        }
+
+        .mzb:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .map-count-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 500;
+            background: rgba(255, 255, 255, .96);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 5px 16px -4px rgba(0, 0, 0, .12);
+            backdrop-filter: blur(8px);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mcb-num {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .mcb-lbl {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            line-height: 1.3;
+        }
+
+        /* Leaflet popup override */
+        .leaflet-popup-content-wrapper {
+            border-radius: 18px !important;
+            box-shadow: 0 20px 60px -10px rgba(30, 64, 175, .25), 0 8px 24px rgba(0, 0, 0, .1) !important;
+            border: 1px solid rgba(255, 255, 255, .8) !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+            width: 280px !important;
+        }
+
+        .leaflet-popup-tip-container {
+            margin-top: -1px !important;
+        }
+
+        .leaflet-popup-tip {
+            background: white !important;
+            box-shadow: none !important;
+        }
+
+        .leaflet-popup-close-button {
+            top: 10px !important;
+            right: 12px !important;
+            font-size: 16px !important;
+            color: var(--muted) !important;
+            font-weight: 700 !important;
+        }
+
+        /* Custom cluster styles */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: rgba(59, 130, 246, .18) !important;
+        }
+
+        .marker-cluster-small div,
+        .marker-cluster-medium div,
+        .marker-cluster-large div {
+            background: rgba(30, 64, 175, .85) !important;
+            color: white !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 12px !important;
+        }
+
+        /* ── RIGHT PANEL ── */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .right-col::-webkit-scrollbar {
+            width: 4px
+        }
+
+        .right-col::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.2);
+            border-radius: 99px
+        }
+
+        .rp-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .rp-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+            letter-spacing: -.02em;
+            line-height: 1.2;
+        }
+
+        .rp-sub {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-top: 3px;
+        }
+
+        .rp-body {
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* event list */
+        .ev-item {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 14px;
+            padding: 12px 13px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .ev-item:hover {
+            background: white;
+            border-color: var(--border);
+            box-shadow: 0 4px 16px -4px rgba(30, 64, 175, .12);
+            transform: translateX(2px);
+        }
+
+        .ev-item.selected {
+            background: white;
+            border-color: #bfdbfe;
+            box-shadow: 0 4px 16px -4px rgba(30, 64, 175, .15);
+        }
+
+        .ev-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .ev-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .ev-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.3;
+        }
+
+        .ev-addr {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
+        .ev-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .ev-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        .ev-date {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-left: auto;
+        }
+
+        /* status colors */
+        .s-inv {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .s-court {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .s-closed {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* type colors */
+        .t-theft {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .t-assault {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .t-drug {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .t-eco {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .t-traffic {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .t-other {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* ── DETAIL DRAWER ── */
+        #detailDrawer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 600;
+            background: rgba(255, 255, 255, .98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -8px 40px -8px rgba(30, 64, 175, .18);
+            transform: translateY(100%);
+            transition: transform .4s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 85%;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        #detailDrawer.open {
+            transform: translateY(0);
+        }
+
+        #detailDrawer::-webkit-scrollbar {
+            width: 4px
+        }
+
+        #detailDrawer::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.2);
+            border-radius: 99px
+        }
+
+        .drawer-handle {
+            width: 36px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            margin: 0 auto 20px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .detail-field {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 11px 13px;
+        }
+
+        .df-lbl {
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .df-val {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .court-box {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1px solid #bfdbfe;
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-top: 10px;
+        }
+
+        .court-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #1d4ed8;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .court-verdict {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .court-detail {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .close-drawer {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+        }
+
+        .close-drawer:hover {
+            background: #e2e8f0;
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="global-spotlight"></div>
+    <div id="gnavParticleLayer"></div>
+
+    <!-- HEADER -->
+    <header class="hdr">
+        <div style="display:flex;align-items:center;gap:26px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div class="logo-ic"><i data-lucide="layers" style="width:18px;height:18px;color:white"></i></div>
+                <span style="font-size:20px;font-weight:800;letter-spacing:-.04em;color:#0f172a">CMAI<span
+                        style="color:#3b82f6">.</span></span>
+            </div>
+            <div class="gooey-nav-container" id="gooeyNavContainer">
+                <nav>
+                    <ul id="gooeyNavList">
+                        <li><span class="gnav-bg"></span><a href="index.html" data-page="index">Dashboard</a></li>
+                        <li><span class="gnav-bg"></span><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="monitoring.html" data-page="monitoring">Monitoring</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="tahlil.html" data-page="hududlar">Hududlar
+                                tahlili</a></li>
+                        <li><span class="gnav-bg"></span><a href="resurslar.html">Resurslar</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+            <div class="sbox">
+                <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                <input type="text" placeholder="Manzil yoki ish raqami...">
+            </div>
+            <button class="nb">
+                <i data-lucide="bell" style="width:17px;height:17px"></i>
+                <span class="nd"></span>
+            </button>
+            <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
+                <div style="text-align:right">
+                    <p style="font-size:11.5px;font-weight:800;color:var(--text)">Admin User</p>
+                    <p style="font-size:10px;color:var(--muted)">Boshqaruvchi</p>
+                </div>
+                <div
+                    style="width:34px;height:34px;border-radius:10px;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e40af&color=fff" alt=""
+                        style="width:100%;height:100%">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAGE BODY -->
+    <div class="page-body">
+
+        <!-- LEFT: FILTERS + MINI STATS -->
+        <div class="filter-col">
+
+            <!-- Mini stats -->
+            <div class="panel" style="padding:14px 16px;">
+                <div class="mini-stats">
+                    <div class="mini-stat">
+                        <div class="ms-val" id="statTotal">73</div>
+                        <div class="ms-lbl">Jami hodisa</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="ms-val" style="color:#ef4444" id="statActive">18</div>
+                        <div class="ms-lbl">Faol ish</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="ms-val" style="color:#f59e0b" id="statCourt">24</div>
+                        <div class="ms-lbl">Sudda</div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="ms-val" style="color:#22c55e" id="statClosed">31</div>
+                        <div class="ms-lbl">Yopilgan</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div class="fp-head">
+                    <div class="fp-title"><span class="badge">F</span> Filtrlar</div>
+                </div>
+                <div class="fp-body">
+                    <!-- Viloyat -->
+                    <div>
+                        <div class="flbl">Viloyat</div>
+                        <select class="fsel-full" id="fRegion">
+                            <option value="all">Barcha viloyatlar</option>
+                            <option value="Toshkent">Toshkent shahri</option>
+                            <option value="Fargona">Farg'ona viloyati</option>
+                            <option value="Andijon">Andijon viloyati</option>
+                            <option value="Namangan">Namangan viloyati</option>
+                            <option value="Samarqand">Samarqand viloyati</option>
+                            <option value="Buxoro">Buxoro viloyati</option>
+                            <option value="Qashqadaryo">Qashqadaryo viloyati</option>
+                            <option value="Surxondaryo">Surxondaryo viloyati</option>
+                        </select>
+                    </div>
+                    <!-- Holat -->
+                    <div>
+                        <div class="flbl">Ish holati</div>
+                        <select class="fsel-full" id="fStatus">
+                            <option value="all">Barchasi</option>
+                            <option value="inv">Tergov jarayonida</option>
+                            <option value="court">Sud jarayonida</option>
+                            <option value="closed">Yopilgan</option>
+                        </select>
+                    </div>
+                    <!-- Sana -->
+                    <div>
+                        <div class="flbl">Sana oralig'i</div>
+                        <div class="fdate">
+                            <input type="date" id="fFrom" value="2025-01-01">
+                            <input type="date" id="fTo" value="2025-12-31">
+                        </div>
+                    </div>
+                    <!-- Jinoyat turi -->
+                    <div>
+                        <div class="flbl">Jinoyat turi</div>
+                        <div class="fcheck-list" id="typeChecks">
+                            <label class="fcheck-item"><input type="checkbox" checked value="theft">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#ef4444"></span><span class="fcheck-lbl">Mulkiy</span><span
+                                    class="fcheck-cnt" id="cnt-theft">—</span>
+                            </label>
+                            <label class="fcheck-item"><input type="checkbox" checked value="assault">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#f59e0b"></span><span class="fcheck-lbl">Shaxsga
+                                    qarshi</span><span class="fcheck-cnt" id="cnt-assault">—</span>
+                            </label>
+                            <label class="fcheck-item"><input type="checkbox" checked value="drug">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#7c3aed"></span><span class="fcheck-lbl">Narkotik</span><span
+                                    class="fcheck-cnt" id="cnt-drug">—</span>
+                            </label>
+                            <label class="fcheck-item"><input type="checkbox" checked value="eco">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#2563eb"></span><span class="fcheck-lbl">Iqtisodiy</span><span
+                                    class="fcheck-cnt" id="cnt-eco">—</span>
+                            </label>
+                            <label class="fcheck-item"><input type="checkbox" checked value="traffic">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#059669"></span><span
+                                    class="fcheck-lbl">Yo'l-transport</span><span class="fcheck-cnt"
+                                    id="cnt-traffic">—</span>
+                            </label>
+                            <label class="fcheck-item"><input type="checkbox" checked value="other">
+                                <div class="fcheck-box"></div><span class="fcheck-dot"
+                                    style="background:#94a3b8"></span><span class="fcheck-lbl">Boshqalar</span><span
+                                    class="fcheck-cnt" id="cnt-other">—</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="fapply" id="applyBtn">
+                        <i data-lucide="search" style="width:13px;height:13px"></i>
+                        Filtrlash
+                    </button>
+                    <button class="freset" id="resetBtn">Tozalash</button>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="panel" style="padding:14px 16px;">
+                <div class="flbl" style="margin-bottom:10px">Marker izoh</div>
+                <div style="display:flex;flex-direction:column;gap:7px;">
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#ef4444;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #ef444440"></span>Mulkiy
+                        jinoyat</div>
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#f59e0b;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #f59e0b40"></span>Shaxsga
+                        qarshi</div>
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#7c3aed;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #7c3aed40"></span>Narkotik
+                    </div>
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#2563eb;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #2563eb40"></span>Iqtisodiy
+                    </div>
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#059669;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #05966940"></span>Yo'l-transport
+                    </div>
+                    <div
+                        style="display:flex;align-items:center;gap:9px;font-size:11px;font-weight:700;color:var(--muted)">
+                        <span
+                            style="width:14px;height:14px;border-radius:50%;background:#94a3b8;flex-shrink:0;border:2px solid white;box-shadow:0 0 0 2px #94a3b840"></span>Boshqalar
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- CENTER: MAP -->
+        <div class="map-col panel">
+            <div id="crime-map"></div>
+
+            <!-- Top legend bar -->
+            <div class="map-top-bar">
+                <div class="mtb-item"><span class="mtb-dot" style="background:#ef4444"></span>Tergov: <b id="mLegInv"
+                        style="color:var(--text);margin-left:3px">18</b></div>
+                <div class="mtb-divider"></div>
+                <div class="mtb-item"><span class="mtb-dot" style="background:#f59e0b"></span>Sud: <b id="mLegCourt"
+                        style="color:var(--text);margin-left:3px">24</b></div>
+                <div class="mtb-divider"></div>
+                <div class="mtb-item"><span class="mtb-dot" style="background:#22c55e"></span>Yopilgan: <b
+                        id="mLegClosed" style="color:var(--text);margin-left:3px">31</b></div>
+            </div>
+
+            <!-- Count badge -->
+            <div class="map-count-badge">
+                <div>
+                    <div class="mcb-num" id="mapCount">73</div>
+                    <div class="mcb-lbl">ta hodisa<br>ko'rsatilmoqda</div>
+                </div>
+            </div>
+
+            <!-- Zoom controls -->
+            <div class="map-zoom-ctrl">
+                <button class="mzb" id="mZoomIn"><i data-lucide="plus" style="width:15px;height:15px"></i></button>
+                <button class="mzb" id="mZoomOut"><i data-lucide="minus" style="width:15px;height:15px"></i></button>
+                <button class="mzb" id="mZoomReset"><i data-lucide="maximize-2"
+                        style="width:13px;height:13px"></i></button>
+            </div>
+
+            <!-- Detail drawer -->
+            <div id="detailDrawer">
+                <button class="close-drawer" id="closeDrawer">✕</button>
+                <div class="drawer-handle"></div>
+                <div id="drawerContent"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT: EVENT LIST -->
+        <div class="right-col">
+            <div class="panel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+                <div class="rp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div>
+                            <div class="rp-title" id="rpTitle">Barcha hodisalar</div>
+                            <div class="rp-sub" id="rpSub">73 ta yozuv topildi</div>
+                        </div>
+                        <div style="display:flex;gap:5px;">
+                            <button onclick="sortEvents('date')"
+                                style="background:none;border:1.5px solid var(--border);border-radius:9px;padding:5px 10px;font-size:10px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--muted);transition:all .2s;"
+                                id="sortDateBtn">Sana</button>
+                            <button onclick="sortEvents('type')"
+                                style="background:none;border:1.5px solid var(--border);border-radius:9px;padding:5px 10px;font-size:10px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--muted);transition:all .2s;"
+                                id="sortTypeBtn">Tur</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rp-body" id="eventList" style="overflow-y:auto;flex:1;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function () {
+
+            /* ── SPOTLIGHT ── */
+            const spotlight = document.getElementById('global-spotlight');
+            let spotVis = false;
+            document.addEventListener('mousemove', e => {
+                spotlight.style.transform = `translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;
+                if (!spotVis) { spotVis = true; spotlight.style.opacity = '1'; }
+            });
+            document.addEventListener('mouseleave', () => { spotVis = false; spotlight.style.opacity = '0'; });
+            document.querySelectorAll('.panel,.hdr').forEach(el => {
+                el.addEventListener('mousemove', e => {
+                    const r = el.getBoundingClientRect();
+                    el.style.setProperty('--glow-x', (e.clientX - r.left) + 'px');
+                    el.style.setProperty('--glow-y', (e.clientY - r.top) + 'px');
+                    el.style.setProperty('--glow-intensity', '0.5');
+                });
+                el.addEventListener('mouseleave', () => el.style.setProperty('--glow-intensity', '0'));
+            });
+            document.addEventListener('click', e => {
+                const r = document.createElement('div'); r.className = 'cmai-ripple';
+                const sz = 80; r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${sz}px;height:${sz}px;`;
+                document.body.appendChild(r); setTimeout(() => r.remove(), 900);
+            });
+
+            /* ── GOOEY NAV ── */
+            const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
+            const particleLayer = document.getElementById('gnavParticleLayer');
+            let activeIndex = -1;
+            const GNAV_COLORS = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'];
+            function spawnParticles(liEl) {
+                const rect = liEl.getBoundingClientRect(), cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+                for (let i = 0; i < 18; i++) {
+                    const angle = (360 / 18) * i + (Math.random() - .5) * 20, rad = angle * Math.PI / 180, dist = 55 * (0.7 + Math.random() * 0.7);
+                    const tx = Math.cos(rad) * dist, ty = Math.sin(rad) * dist, size = 4 + Math.random() * 5, dur = 0.55 + Math.random() * 0.45, delay = Math.random() * 80;
+                    const color = GNAV_COLORS[Math.floor(Math.random() * GNAV_COLORS.length)];
+                    const dot = document.createElement('div'); dot.className = 'gnav-dot';
+                    dot.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 ${size * 1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`;
+                    particleLayer.appendChild(dot); setTimeout(() => dot.remove(), (dur + delay / 1000 + 0.1) * 1000);
+                }
+            }
+            function activateItem(index) {
+                if (activeIndex === index) return;
+                if (activeIndex >= 0 && listItems[activeIndex]) listItems[activeIndex].classList.remove('active');
+                activeIndex = index; listItems[index].classList.add('active'); spawnParticles(listItems[index]);
+            }
+            listItems.forEach((li, i) => li.addEventListener('click', () => activateItem(i)));
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
+                let found = 0; listItems.forEach((li, i) => { const a = li.querySelector('a[data-page]'); if (a && a.dataset.page === page) found = i; });
+                activeIndex = found; listItems[found].classList.add('active');
+            }));
+            setTimeout(() => lucide.createIcons(), 200);
+
+            /* ══════════════════════════════════════
+               MOCK DATA — 73 crime events
+            ══════════════════════════════════════ */
+            const TYPE_META = {
+                theft: { label: 'Mulkiy jinoyat', color: '#ef4444', cls: 't-theft' },
+                assault: { label: 'Shaxsga qarshi', color: '#f59e0b', cls: 't-assault' },
+                drug: { label: 'Narkotik', color: '#7c3aed', cls: 't-drug' },
+                eco: { label: 'Iqtisodiy', color: '#2563eb', cls: 't-eco' },
+                traffic: { label: "Yo'l-transport", color: '#059669', cls: 't-traffic' },
+                other: { label: 'Boshqalar', color: '#94a3b8', cls: 't-other' }
+            };
+            const STATUS_META = {
+                inv: { label: 'Tergov jarayonida', cls: 's-inv', color: '#ef4444' },
+                court: { label: 'Sud jarayonida', cls: 's-court', color: '#f59e0b' },
+                closed: { label: 'Yopilgan', cls: 's-closed', color: '#22c55e' }
+            };
+
+            const VERDICTS = [
+                { verdict: "Ozod qilish jazoyi to'xtatildi", detail: "Ish yetarli dalillar yo'qligi sababli yopildi.", jazo: '—' },
+                { verdict: "3 yil shartli jazо", detail: "Sudya ijtimoiy xavfsizlikni hisobga olib qaror qildi.", jazo: 'Shartli' },
+                { verdict: "5 yil ozodlikdan mahrum qilish", detail: "Ag'ir jinoyat sifatida belgilandi, jazo to'liq o'taydi.", jazo: "Haqiqiy" },
+                { verdict: "1 yil ozodlikdan mahrum qilish", detail: "Birinchi marta sodir etilgani inobatga olindi.", jazo: "Haqiqiy" },
+                { verdict: "Jarima — 15 000 000 so'm", detail: "Moddiy zarar to'liq qoplandi, jazo yumshatildi.", jazo: "Jarima" },
+                { verdict: "2 yil shartli jazo + jarima", detail: "Ijtimoiy xizmat ham majburiy belgilandi.", jazo: "Aralash" },
+                { verdict: "7 yil ozodlikdan mahrum qilish", detail: "Og'ir jinoyat, recidiv aniqlandi.", jazo: "Haqiqiy" },
+                { verdict: "Ish qaytarildi, qo'shimcha tergov", detail: "Yangi dalillar asosida tergov qayta boshlandi.", jazo: '—' },
+            ];
+
+            const ICONS = {
+                theft: 'shopping-bag', assault: 'alert-triangle', drug: 'pill',
+                eco: 'briefcase', traffic: 'car', other: 'file-text'
+            };
+
+            const ADDRESSES = [
+                { city: 'Toshkent', addr: "Yunusobod tumani, Amir Temur ko'chasi 45", lat: 41.3351, lng: 69.2860, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Chilonzor tumani, Bunyodkor ko'chasi 12", lat: 41.2935, lng: 69.2068, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Mirzo Ulug'bek tumani, Qo'yliq bozori", lat: 41.3283, lng: 69.3527, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Shayxontohur, Navoi ko'chasi 78", lat: 41.3180, lng: 69.2549, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Uchtepa tumani, Ko'kcha darvoza", lat: 41.3078, lng: 69.2215, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Yakkasaroy, Pushkin ko'chasi 22", lat: 41.2998, lng: 69.2726, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Bektemir tumani, Sanoat ko'chasi 5", lat: 41.2641, lng: 69.3706, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Olmazar tumani, Farxod bozori yaqini", lat: 41.3472, lng: 69.3018, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Sergeli tumani, 5-mavze", lat: 41.2512, lng: 69.2488, region: 'Toshkent' },
+                { city: "Farg'ona", addr: "Farg'ona sh., Mustaqillik ko'chasi 33", lat: 40.3834, lng: 71.7864, region: 'Fargona' },
+                { city: "Farg'ona", addr: "Marg'ilon sh., Beshko'cha bozori", lat: 40.4750, lng: 71.7230, region: 'Fargona' },
+                { city: "Farg'ona", addr: "Qo'qon sh., Istiklol ko'chasi 14", lat: 40.5288, lng: 70.9419, region: 'Fargona' },
+                { city: "Farg'ona", addr: "Rishton tumani, Markaziy ko'cha", lat: 40.3568, lng: 71.2857, region: 'Fargona' },
+                { city: 'Andijon', addr: "Andijon sh., Navoiy ko'chasi 56", lat: 40.7821, lng: 72.3442, region: 'Andijon' },
+                { city: 'Andijon', addr: "Asaka sh., Mustaqillik xiyoboni", lat: 40.6433, lng: 72.2387, region: 'Andijon' },
+                { city: 'Andijon', addr: "Andijon, Janubiy bozor yaqini", lat: 40.7653, lng: 72.3574, region: 'Andijon' },
+                { city: 'Namangan', addr: "Namangan sh., Chorsu ko'chasi 8", lat: 41.0011, lng: 71.6725, region: 'Namangan' },
+                { city: 'Namangan', addr: "Namangan, Ipak yo'li ko'chasi", lat: 41.0142, lng: 71.6583, region: 'Namangan' },
+                { city: 'Samarqand', addr: "Samarqand sh., Registon xiyoboni", lat: 39.6543, lng: 66.9597, region: 'Samarqand' },
+                { city: 'Samarqand', addr: "Samarqand, Toshkent ko'chasi 102", lat: 39.6708, lng: 67.0160, region: 'Samarqand' },
+                { city: 'Samarqand', addr: "Urgut tumani, Markaziy bozor", lat: 39.3978, lng: 67.2477, region: 'Samarqand' },
+                { city: 'Buxoro', addr: "Buxoro sh., Karvon saroyi ko'chasi", lat: 39.7680, lng: 64.4214, region: 'Buxoro' },
+                { city: 'Buxoro', addr: "Buxoro, Mustaqillik maydoni", lat: 39.7745, lng: 64.4285, region: 'Buxoro' },
+                { city: 'Qarshi', addr: "Qarshi sh., Amir Temur ko'chasi 7", lat: 38.8606, lng: 65.7911, region: 'Qashqadaryo' },
+                { city: 'Qarshi', addr: "Qarshi, Temir yo'l stansiyasi yaqini", lat: 38.8482, lng: 65.7746, region: 'Qashqadaryo' },
+                { city: 'Termiz', addr: "Termiz sh., Alpomish ko'chasi 34", lat: 37.2244, lng: 67.2783, region: 'Surxondaryo' },
+                { city: 'Termiz', addr: "Termiz, Bozor ko'chasi", lat: 37.2318, lng: 67.2618, region: 'Surxondaryo' },
+                { city: 'Toshkent', addr: "Toshkent, Sergeli, 9-mavze", lat: 41.2433, lng: 69.2612, region: 'Toshkent' },
+                { city: 'Toshkent', addr: "Toshkent, Almazor tumani", lat: 41.3612, lng: 69.2185, region: 'Toshkent' },
+                { city: "Farg'ona", addr: "Farg'ona viloyati, Oltiariq tumani", lat: 40.3212, lng: 71.4678, region: 'Fargona' },
+            ];
+
+            const TYPES = Object.keys(TYPE_META);
+            const STATUSES = ['inv', 'inv', 'court', 'court', 'closed', 'closed', 'closed'];
+            const NAMES = [
+                "Rahimov A.", "Karimov B.", "Toshmatov S.", "Yusupov F.", "Nazarov D.",
+                "Mirzayev O.", "Holmatov I.", "Qodirov N.", "Xasanov J.", "Ergashev T.",
+                "Sultonov M.", "Baxtiyorov K.", "Mamadaliyev R.", "Nishonov U.", "Tursunov G."
+            ];
+
+            function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+            function rndInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+            const crimes = [];
+            for (let i = 0; i < 73; i++) {
+                const addrObj = ADDRESSES[i % ADDRESSES.length];
+                const type = TYPES[i % TYPES.length];
+                const status = rnd(STATUSES);
+                const month = rndInt(1, 12);
+                const day = rndInt(1, 28);
+                const verdict = status === 'closed' ? rnd(VERDICTS) : null;
+                crimes.push({
+                    id: 'ISH-' + String(2025000 + i + 1),
+                    type, status,
+                    address: addrObj.addr, city: addrObj.city, region: addrObj.region,
+                    lat: addrObj.lat + (Math.random() - .5) * 0.04,
+                    lng: addrObj.lng + (Math.random() - .5) * 0.04,
+                    date: `2025-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                    suspect: rnd(NAMES),
+                    caseNum: 'ISH/2025/' + String(1000 + i + 1),
+                    investigator: 'Insp. ' + rnd(NAMES),
+                    verdict,
+                    severity: rnd(['Og\'ir', 'O\'rta', 'Yengil']),
+                    description: `${TYPE_META[type].label} — ${addrObj.addr}da sodir etilgan. Tergov boshlanganidan beri ${rndInt(30, 180)} kun o'tgan.`
+                });
+            }
+
+            /* Update type counts */
+            TYPES.forEach(t => {
+                const cnt = crimes.filter(c => c.type === t).length;
+                const el = document.getElementById('cnt-' + t);
+                if (el) el.textContent = cnt;
+            });
+
+            /* ══════════════════════════════════════
+               LEAFLET MAP
+            ══════════════════════════════════════ */
+            const leafMap = L.map('crime-map', { center: [41.3, 63.5], zoom: 6, zoomControl: false, attributionControl: false });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(leafMap);
+
+            document.getElementById('mZoomIn').addEventListener('click', () => leafMap.zoomIn());
+            document.getElementById('mZoomOut').addEventListener('click', () => leafMap.zoomOut());
+            document.getElementById('mZoomReset').addEventListener('click', () => leafMap.flyTo([41.3, 63.5], 6, { duration: 0.8 }));
+
+            function makeIcon(type, status) {
+                const c = TYPE_META[type].color;
+                const border = status === 'inv' ? '#ef4444' : status === 'court' ? '#f59e0b' : '#22c55e';
+                return L.divIcon({
+                    className: '',
+                    html: `<div style="
+            width:28px;height:28px;border-radius:50%;
+            background:${c};border:3px solid white;
+            box-shadow:0 0 0 2px ${border},0 4px 12px rgba(0,0,0,.25);
+            display:flex;align-items:center;justify-content:center;
+            cursor:pointer;transition:transform .2s;
+        "></div>`,
+                    iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -16]
+                });
+            }
+
+            function makePopup(crime) {
+                const tm = TYPE_META[crime.type];
+                const sm = STATUS_META[crime.status];
+                return `<div style="font-family:'Plus Jakarta Sans',sans-serif;">
+        <div style="background:${tm.color};padding:14px 16px 12px;border-radius:0;">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.8);margin-bottom:3px;">${crime.caseNum}</div>
+            <div style="font-size:14px;font-weight:800;color:white;">${tm.label}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:2px;">${crime.city}</div>
+        </div>
+        <div style="padding:14px 16px;">
+            <div style="font-size:11.5px;font-weight:600;color:#64748b;margin-bottom:10px;">${crime.address}</div>
+            <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+                <span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:${sm.color}18;color:${sm.color};">${sm.label}</span>
+                <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#f1f5f9;color:#64748b;">${crime.date}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;">
+                <div style="background:#f8fafc;border-radius:9px;padding:8px 10px;">
+                    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:2px;">Shubhali shaxs</div>
+                    <div style="font-size:12px;font-weight:700;color:#1e293b;">${crime.suspect}</div>
+                </div>
+                <div style="background:#f8fafc;border-radius:9px;padding:8px 10px;">
+                    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:2px;">Og'irlik darajasi</div>
+                    <div style="font-size:12px;font-weight:700;color:#1e293b;">${crime.severity}</div>
+                </div>
+            </div>
+            <button onclick="window.openDrawer(${crimes.indexOf(crime)})"
+                style="width:100%;background:#1e40af;color:white;border:none;border-radius:10px;padding:9px;font-size:12px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                Batafsil ko'rish →
+            </button>
+        </div>
+    </div>`;
+            }
+
+            let clusterGroup = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                iconCreateFunction: function (cluster) {
+                    const n = cluster.getChildCount();
+                    return L.divIcon({
+                        html: `<div style="width:38px;height:38px;border-radius:50%;background:rgba(30,64,175,.85);border:3px solid white;box-shadow:0 0 0 2px rgba(30,64,175,.3),0 4px 12px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:800;color:white;">${n}</div>`,
+                        className: '', iconSize: [38, 38], iconAnchor: [19, 19]
+                    });
+                }
+            });
+            leafMap.addLayer(clusterGroup);
+
+            let allMarkers = [];
+            let currentCrimes = [...crimes];
+
+            function renderMarkers(data) {
+                clusterGroup.clearLayers(); allMarkers = [];
+                data.forEach((crime, idx) => {
+                    const marker = L.marker([crime.lat, crime.lng], { icon: makeIcon(crime.type, crime.status) });
+                    marker.bindPopup(makePopup(crime), { maxWidth: 290, minWidth: 280 });
+                    marker.on('click', () => {
+                        document.querySelectorAll('.ev-item').forEach(e => e.classList.remove('selected'));
+                        const evEl = document.getElementById('ev-' + idx);
+                        if (evEl) { evEl.classList.add('selected'); evEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+                    });
+                    clusterGroup.addLayer(marker);
+                    allMarkers.push(marker);
+                });
+                document.getElementById('mapCount').textContent = data.length;
+            }
+
+            /* ══════════════════════════════════════
+               EVENT LIST
+            ══════════════════════════════════════ */
+            let sortMode = 'date';
+            function renderEventList(data) {
+                const el = document.getElementById('eventList');
+                if (!data.length) { el.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;font-weight:600;">Hodisa topilmadi</div>'; return; }
+                const sorted = [...data].sort((a, b) => {
+                    if (sortMode === 'date') return new Date(b.date) - new Date(a.date);
+                    return a.type.localeCompare(b.type);
+                });
+                el.innerHTML = sorted.map((crime) => {
+                    const i = crimes.indexOf(crime);
+                    const tm = TYPE_META[crime.type];
+                    const sm = STATUS_META[crime.status];
+                    return `<div class="ev-item" id="ev-${i}" onclick="window.focusMarker(${i})">
+            <div class="ev-top">
+                <div class="ev-icon" style="background:${tm.color}18">
+                    <i data-lucide="${ICONS[crime.type]}" style="width:15px;height:15px;color:${tm.color}"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div class="ev-name">${crime.caseNum} — ${tm.label}</div>
+                    <div class="ev-addr">${crime.address}</div>
+                </div>
+            </div>
+            <div class="ev-meta">
+                <span class="ev-badge ${sm.cls}">${sm.label}</span>
+                <span class="ev-badge ${tm.cls}">${crime.severity}</span>
+                <span class="ev-date">${crime.date}</span>
+            </div>
+        </div>`;
+                }).join('');
+                document.getElementById('rpSub').textContent = data.length + ' ta yozuv topildi';
+                setTimeout(() => lucide.createIcons(), 80);
+            }
+
+            window.focusMarker = function (idx) {
+                const crime = crimes[idx];
+                leafMap.flyTo([crime.lat, crime.lng], 14, { duration: 0.7 });
+                setTimeout(() => {
+                    const m = allMarkers[idx];
+                    if (m) { clusterGroup.zoomToShowLayer(m, () => m.openPopup()); }
+                }, 750);
+                document.querySelectorAll('.ev-item').forEach(e => e.classList.remove('selected'));
+                const evEl = document.getElementById('ev-' + idx); if (evEl) evEl.classList.add('selected');
+            };
+
+            /* ══════════════════════════════════════
+               DETAIL DRAWER
+            ══════════════════════════════════════ */
+            window.openDrawer = function (idx) {
+                const crime = crimes[idx];
+                const tm = TYPE_META[crime.type];
+                const sm = STATUS_META[crime.status];
+                const dc = document.getElementById('drawerContent');
+                dc.innerHTML = `
+        <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:16px;">
+            <div style="width:48px;height:48px;border-radius:14px;background:${tm.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="${ICONS[crime.type]}" style="width:22px;height:22px;color:${tm.color}"></i>
+            </div>
+            <div>
+                <div style="font-size:16px;font-weight:800;color:var(--text);">${tm.label}</div>
+                <div style="font-size:12px;color:var(--muted);margin-top:2px;">${crime.caseNum}</div>
+                <div style="display:flex;gap:6px;margin-top:7px;">
+                    <span style="font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:${sm.color}18;color:${sm.color};">${sm.label}</span>
+                    <span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:99px;background:#f1f5f9;color:#64748b;">${crime.severity} jinoyat</span>
+                </div>
+            </div>
+        </div>
+        <div style="font-size:12px;font-weight:500;color:var(--muted);background:#f8fafc;border-radius:12px;padding:11px 13px;margin-bottom:4px;">
+            ${crime.description}
+        </div>
+        <div class="detail-grid">
+            <div class="detail-field">
+                <div class="df-lbl">Manzil</div>
+                <div class="df-val">${crime.address}</div>
+            </div>
+            <div class="detail-field">
+                <div class="df-lbl">Sana</div>
+                <div class="df-val">${crime.date}</div>
+            </div>
+            <div class="detail-field">
+                <div class="df-lbl">Shubhali shaxs</div>
+                <div class="df-val">${crime.suspect}</div>
+            </div>
+            <div class="detail-field">
+                <div class="df-lbl">Tergovchi</div>
+                <div class="df-val">${crime.investigator}</div>
+            </div>
+        </div>
+        ${crime.verdict ? `
+        <div class="court-box">
+            <div class="court-title">
+                <i data-lucide="gavel" style="width:13px;height:13px"></i>
+                Sud qarori
+            </div>
+            <div class="court-verdict">${crime.verdict.verdict}</div>
+            <div class="court-detail">${crime.verdict.detail}</div>
+            <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+                <span style="font-size:10px;font-weight:800;background:#1e40af;color:white;padding:3px 10px;border-radius:99px;">Jazo: ${crime.verdict.jazo}</span>
+            </div>
+        </div>`: `
+        <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:14px;padding:13px 15px;margin-top:4px;">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#d97706;margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+                <i data-lucide="clock" style="width:12px;height:12px"></i>
+                ${crime.status === 'inv' ? 'Tergov davom etmoqda' : 'Sud jarayonida'}
+            </div>
+            <div style="font-size:12px;font-weight:500;color:#92400e;">Sud qarori hali mavjud emas.</div>
+        </div>`}
+    `;
+                document.getElementById('detailDrawer').classList.add('open');
+                setTimeout(() => lucide.createIcons(), 50);
+            };
+
+            document.getElementById('closeDrawer').addEventListener('click', () => {
+                document.getElementById('detailDrawer').classList.remove('open');
+            });
+
+            /* ══════════════════════════════════════
+               FILTER LOGIC
+            ══════════════════════════════════════ */
+            function getActiveTypes() {
+                return Array.from(document.querySelectorAll('#typeChecks input:checked')).map(i => i.value);
+            }
+
+            function applyFilter() {
+                const region = document.getElementById('fRegion').value;
+                const status = document.getElementById('fStatus').value;
+                const from = document.getElementById('fFrom').value;
+                const to = document.getElementById('fTo').value;
+                const types = getActiveTypes();
+
+                currentCrimes = crimes.filter(c => {
+                    if (region !== 'all' && c.region !== region) return false;
+                    if (status !== 'all' && c.status !== status) return false;
+                    if (types.length && !types.includes(c.type)) return false;
+                    if (from && c.date < from) return false;
+                    if (to && c.date > to) return false;
+                    return true;
+                });
+
+                renderMarkers(currentCrimes);
+                renderEventList(currentCrimes);
+
+                const inv = currentCrimes.filter(c => c.status === 'inv').length;
+                const court = currentCrimes.filter(c => c.status === 'court').length;
+                const closed = currentCrimes.filter(c => c.status === 'closed').length;
+                document.getElementById('statTotal').textContent = currentCrimes.length;
+                document.getElementById('statActive').textContent = inv;
+                document.getElementById('statCourt').textContent = court;
+                document.getElementById('statClosed').textContent = closed;
+                document.getElementById('mLegInv').textContent = inv;
+                document.getElementById('mLegCourt').textContent = court;
+                document.getElementById('mLegClosed').textContent = closed;
+            }
+
+            document.getElementById('applyBtn').addEventListener('click', applyFilter);
+            document.getElementById('typeChecks').addEventListener('change', applyFilter);
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('fRegion').value = 'all';
+                document.getElementById('fStatus').value = 'all';
+                document.getElementById('fFrom').value = '2025-01-01';
+                document.getElementById('fTo').value = '2025-12-31';
+                document.querySelectorAll('#typeChecks input').forEach(i => i.checked = true);
+                applyFilter();
+            });
+
+            window.sortEvents = function (mode) {
+                sortMode = mode;
+                renderEventList(currentCrimes);
+                setTimeout(() => lucide.createIcons(), 80);
+            };
+
+            /* INIT */
+            renderMarkers(crimes);
+            renderEventList(crimes);
+
+        })();
+    </script>
+</body>
+
+</html>

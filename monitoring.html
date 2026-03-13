@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMAI — Monitoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #e8edf5;
+            --primary: #1e40af;
+            --pl: #3b82f6;
+            --surface: #fff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --g: 12px;
+            --r: 20px;
+            --hdr: 62px;
+            --glow-r: 30;
+            --glow-g: 64;
+            --glow-b: 175;
+            --glow-color: 30, 64, 175;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            padding: var(--g);
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        body::-webkit-scrollbar {
+            width: 5px
+        }
+
+        body::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.4);
+            border-radius: 99px
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: var(--r);
+            box-shadow: 0 8px 32px -10px rgba(30, 64, 175, .15), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            position: relative;
+            overflow: hidden;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 300px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ── HEADER ── */
+        .hdr {
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 400px;
+            height: var(--hdr);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(28px) saturate(1.5);
+            -webkit-backdrop-filter: blur(28px) saturate(1.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--r);
+            box-shadow: 0 2px 24px -6px rgba(30, 64, 175, .12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+            position: sticky;
+            top: var(--g);
+            z-index: 100;
+            transition: top .35s cubic-bezier(.4, 0, .2, 1), border-radius .35s cubic-bezier(.4, 0, .2, 1), background .35s, box-shadow .35s, margin .35s, padding .35s;
+        }
+
+        .hdr::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.25)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 200;
+            transition: opacity 0.3s ease;
+        }
+
+        .hdr.scrolled {
+            top: 0;
+            border-radius: 0;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(32px) saturate(1.6);
+            -webkit-backdrop-filter: blur(32px) saturate(1.6);
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid rgba(226, 232, 240, .4);
+            box-shadow: 0 1px 24px -4px rgba(30, 64, 175, .1);
+            margin-left: calc(-1 * var(--g));
+            margin-right: calc(-1 * var(--g));
+            padding-left: calc(26px + var(--g));
+            padding-right: calc(26px + var(--g));
+        }
+
+        .logo-ic {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .55);
+        }
+
+        nav a {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .2s;
+            white-space: nowrap;
+            position: relative
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2.5px;
+            background: var(--primary);
+            border-radius: 99px;
+            transition: width .25s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        nav a:hover {
+            color: var(--text)
+        }
+
+        nav a:hover::after {
+            width: 100%
+        }
+
+        nav a.act {
+            color: var(--primary)
+        }
+
+        nav a.act::after {
+            width: 100%
+        }
+
+        .sbox {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 7px 16px
+        }
+
+        .sbox input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-family: inherit;
+            color: var(--text);
+            width: 120px
+        }
+
+        .nb {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: background .2s
+        }
+
+        .nb:hover {
+            background: #f1f5f9
+        }
+
+        .nd {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 7px;
+            height: 7px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white
+        }
+
+        .gooey-nav-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav {
+            position: relative;
+            transform: translate3d(0, 0, 0.01px);
+            z-index: 3;
+        }
+
+        .gooey-nav-container>nav>ul {
+            display: flex;
+            gap: 2px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav>ul>li {
+            position: relative;
+            cursor: pointer;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li>a {
+            display: block;
+            padding: 7px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+            transition: color 0.25s ease;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>a {
+            color: white;
+        }
+
+        .gooey-nav-container>nav>ul>li>.gnav-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 100vw;
+            background: var(--primary);
+            z-index: 1;
+            transform: scale(0.3);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>.gnav-bg {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #gnavParticleLayer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99999;
+            overflow: visible;
+        }
+
+        .gnav-dot {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: gnavDot var(--dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes gnavDot {
+            0% {
+                transform: translate(-50%, -50%) translate(0px, 0px) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        /* ── SPOTLIGHT ── */
+        #global-spotlight {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.13) 0%, rgba(30, 64, 175, 0.07) 20%, rgba(59, 130, 246, 0.04) 40%, rgba(59, 130, 246, 0.01) 60%, transparent 70%);
+            z-index: 9999;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: multiply;
+            transition: opacity 0.4s ease;
+            will-change: transform, opacity;
+        }
+
+        .cmai-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(30, 64, 175, 1);
+            box-shadow: 0 0 8px rgba(30, 64, 175, 0.8), 0 0 16px rgba(59, 130, 246, 0.4);
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            will-change: transform, opacity;
+        }
+
+        .cmai-ripple {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%) scale(0);
+            border: 1.5px solid rgba(30, 64, 175, 0.5);
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.12) 0%, rgba(59, 130, 246, 0.06) 40%, transparent 70%);
+            animation: rippleOut 0.8s cubic-bezier(0.2, 0, 0.6, 1) forwards;
+        }
+
+        @keyframes rippleOut {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+
+            60% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* ── FILTER BAR ── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .fsel {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: all .2s;
+            font-family: inherit;
+        }
+
+        .fsel:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, .08);
+        }
+
+        .fsel select {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        .fsel-icon {
+            color: var(--primary);
+        }
+
+        .fbadge {
+            background: var(--primary);
+            color: white;
+            border-radius: 99px;
+            padding: 1px 8px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        .fapply {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 9px 20px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            transition: all .2s;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .5);
+        }
+
+        .fapply:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px -4px rgba(30, 64, 175, .6);
+        }
+
+        .freset {
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+        }
+
+        .freset:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+
+        /* ── MAIN GRID ── */
+        .mon-grid {
+            display: grid;
+            grid-template-columns: 62fr 38fr;
+            gap: var(--g);
+            align-items: start;
+        }
+
+        .left-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+            min-width: 0;
+        }
+
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        /* ── PANEL PARTS ── */
+        .bp {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bp-head {
+            padding: 20px 24px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .bp-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .bp-title .badge {
+            font-size: 9px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 700;
+        }
+
+        .bp-body {
+            padding: 22px 24px;
+            flex: 1;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .tb {
+            padding: 5px 14px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .2s;
+            font-family: inherit;
+        }
+
+        .tb.on {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ── KPI TOP ROW ── */
+        .kpi-top {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--g);
+        }
+
+        .kpi-card {
+            padding: 18px 20px;
+        }
+
+        .kpi-lbl {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .kpi-val {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -.04em;
+            line-height: 1;
+            color: var(--text);
+        }
+
+        .kpi-sub {
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .kpi-up {
+            color: #ef4444;
+        }
+
+        .kpi-dn {
+            color: #22c55e;
+        }
+
+        .kpi-neu {
+            color: var(--muted);
+        }
+
+        .kpi-spark {
+            margin-top: 10px;
+            height: 36px;
+        }
+
+        /* ── TREND CHART ── */
+        .anomaly-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        /* ── COMPARE PANEL ── */
+        .cmp-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .cmp-sel {
+            flex: 1;
+            min-width: 140px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s;
+        }
+
+        .cmp-sel:focus {
+            border-color: var(--primary);
+        }
+
+        .cmp-vs {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--muted);
+            padding: 0 4px;
+        }
+
+        /* ── ANOMALY LIST ── */
+        .anom-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            padding: 11px 14px;
+            border-radius: 14px;
+            margin-bottom: 8px;
+            border: 1px solid transparent;
+            transition: all .2s;
+        }
+
+        .anom-item:hover {
+            transform: translateX(2px);
+        }
+
+        .anom-item.red {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .anom-item.yellow {
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+
+        .anom-item.blue {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .anom-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .anom-icon.red {
+            background: #fee2e2;
+        }
+
+        .anom-icon.yellow {
+            background: #fef3c7;
+        }
+
+        .anom-icon.blue {
+            background: #dbeafe;
+        }
+
+        .anom-title {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .anom-sub {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .anom-badge {
+            margin-left: auto;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 9px;
+            border-radius: 99px;
+            flex-shrink: 0;
+        }
+
+        .anom-badge.red {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .anom-badge.yellow {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .anom-badge.blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* ── RISK PANEL ── */
+        .risk-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+        }
+
+        .risk-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            width: 130px;
+            flex-shrink: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .risk-track {
+            flex: 1;
+            height: 7px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .risk-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width .6s;
+        }
+
+        .risk-badge {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+            flex-shrink: 0;
+            width: 46px;
+            text-align: center;
+        }
+
+        .risk-badge.h {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .risk-badge.m {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .risk-badge.l {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* ── TABLE ── */
+        .tbl-wrap {
+            overflow-x: auto;
+        }
+
+        .tbl-wrap::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .tbl-wrap::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.25);
+            border-radius: 99px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        thead th {
+            padding: 10px 14px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            text-align: left;
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color .2s;
+            user-select: none;
+        }
+
+        thead th:hover {
+            color: var(--primary);
+        }
+
+        thead th.sort-asc::after {
+            content: ' ↑';
+        }
+
+        thead th.sort-desc::after {
+            content: ' ↓';
+        }
+
+        tbody tr {
+            transition: background .15s;
+            border-bottom: 1px solid #f8fafc;
+        }
+
+        tbody tr:hover {
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        tbody td {
+            padding: 10px 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .td-rank {
+            font-size: 10px;
+            font-weight: 800;
+            width: 24px;
+            text-align: center;
+        }
+
+        .td-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .td-bar-track {
+            flex: 1;
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+            min-width: 60px;
+        }
+
+        .td-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+        }
+
+        .td-trend {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        .td-trend.up {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .td-trend.dn {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .td-trend.neu {
+            background: #f1f5f9;
+            color: var(--muted);
+        }
+
+        .tbl-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 8px 14px;
+            margin-bottom: 14px;
+        }
+
+        .tbl-search input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--text);
+            flex: 1;
+        }
+
+        /* ── SC CARD (inline stat) ── */
+        .sc {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 16px;
+            transition: box-shadow .2s;
+            position: relative;
+            overflow: hidden;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 200px;
+        }
+
+        .sc::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y), rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%, rgba(var(--glow-color), calc(var(--glow-intensity)*0.25)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .sc:hover {
+            box-shadow: 0 6px 24px -6px rgba(0, 0, 0, .09);
+        }
+
+        .sc-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            margin-bottom: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="global-spotlight"></div>
+    <div id="gnavParticleLayer"></div>
+
+    <!-- HEADER -->
+    <header class="hdr">
+        <div style="display:flex;align-items:center;gap:26px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div class="logo-ic"><i data-lucide="layers" style="width:18px;height:18px;color:white"></i></div>
+                <span style="font-size:20px;font-weight:800;letter-spacing:-.04em;color:#0f172a">CMAI<span
+                        style="color:#3b82f6">.</span></span>
+            </div>
+            <div class="gooey-nav-container" id="gooeyNavContainer">
+                <nav>
+                    <ul id="gooeyNavList">
+                        <li><span class="gnav-bg"></span><a href="index.html" data-page="index">Dashboard</a></li>
+                        <li><span class="gnav-bg"></span><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="monitoring.html" data-page="monitoring">Monitoring</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="tahlil.html">Hududlar tahlili</a></li>
+                        <li><span class="gnav-bg"></span><a href="resurslar.html">Resurslar</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+            <div class="sbox">
+                <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                <input type="text" placeholder="Qidiruv...">
+            </div>
+            <button class="nb">
+                <i data-lucide="bell" style="width:17px;height:17px"></i>
+                <span class="nd"></span>
+            </button>
+            <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
+                <div style="text-align:right">
+                    <p style="font-size:11.5px;font-weight:800;color:var(--text)">Admin User</p>
+                    <p style="font-size:10px;color:var(--muted)">Boshqaruvchi</p>
+                </div>
+                <div
+                    style="width:34px;height:34px;border-radius:10px;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e40af&color=fff" alt=""
+                        style="width:100%;height:100%">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FILTER BAR -->
+    <div class="panel" style="padding:14px 20px;">
+        <div class="filter-bar">
+            <div style="display:flex;align-items:center;gap:6px;margin-right:4px;">
+                <i data-lucide="sliders-horizontal" style="width:15px;height:15px;color:var(--primary)"></i>
+                <span style="font-size:12px;font-weight:800;color:var(--text)">Filtrlar</span>
+            </div>
+            <div class="fsel">
+                <i data-lucide="calendar" style="width:13px;height:13px;color:var(--primary)"></i>
+                <select id="fYear">
+                    <option value="all">Barcha yillar</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                </select>
+            </div>
+            <div class="fsel">
+                <i data-lucide="calendar-days" style="width:13px;height:13px;color:var(--primary)"></i>
+                <select id="fMonth">
+                    <option value="all">Barcha oylar</option>
+                    <option value="1">Yanvar</option>
+                    <option value="2">Fevral</option>
+                    <option value="3">Mart</option>
+                    <option value="4">Aprel</option>
+                    <option value="5">May</option>
+                    <option value="6">Iyun</option>
+                    <option value="7">Iyul</option>
+                    <option value="8">Avgust</option>
+                    <option value="9">Sentabr</option>
+                    <option value="10">Oktabr</option>
+                    <option value="11">Noyabr</option>
+                    <option value="12">Dekabr</option>
+                </select>
+            </div>
+            <div class="fsel">
+                <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--primary)"></i>
+                <select id="fRegion">
+                    <option value="all">Barcha viloyatlar</option>
+                    <option value="tk">Toshkent shahri</option>
+                    <option value="to">Toshkent viloyati</option>
+                    <option value="fa">Farg'ona viloyati</option>
+                    <option value="an">Andijon viloyati</option>
+                    <option value="ng">Namangan viloyati</option>
+                    <option value="sa">Samarqand viloyati</option>
+                    <option value="bh">Buxoro viloyati</option>
+                    <option value="kh">Xorazm viloyati</option>
+                    <option value="qr">Qoraqalpog'iston</option>
+                    <option value="nw">Navoiy viloyati</option>
+                    <option value="ji">Jizzax viloyati</option>
+                    <option value="si">Sirdaryo viloyati</option>
+                    <option value="su">Surxondaryo viloyati</option>
+                    <option value="qa">Qashqadaryo viloyati</option>
+                </select>
+            </div>
+            <div class="fsel">
+                <i data-lucide="tag" style="width:13px;height:13px;color:var(--primary)"></i>
+                <select id="fType">
+                    <option value="all">Barcha turlar</option>
+                    <option value="mol">Mulkiy jinoyatlar</option>
+                    <option value="shax">Shaxsga qarshi</option>
+                    <option value="iqt">Iqtisodiy</option>
+                    <option value="nar">Narkotik</option>
+                    <option value="yor">Yo'l-transport</option>
+                </select>
+            </div>
+            <button class="fapply" id="applyBtn">
+                <i data-lucide="search" style="width:13px;height:13px"></i>
+                Qidirish
+            </button>
+            <button class="freset" id="resetBtn">Tozalash</button>
+            <div
+                style="margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted);">
+                <span id="filterStatus">Natija: <b style="color:var(--primary)">1,073</b> ta hodisa</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI TOP ROW -->
+    <div class="kpi-top">
+        <!-- KPI 1 -->
+        <div class="panel kpi-card">
+            <div class="kpi-lbl"><i data-lucide="trending-up" style="width:12px;height:12px;color:#ef4444"></i>Jami
+                jinoyat</div>
+            <div class="kpi-val" id="kpiTotal">1,073</div>
+            <div class="kpi-sub kpi-up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+12.4% o'tgan
+                yilga</div>
+            <div class="kpi-spark"><canvas id="sparkTotal" height="36"></canvas></div>
+        </div>
+        <!-- KPI 2 -->
+        <div class="panel kpi-card">
+            <div class="kpi-lbl"><i data-lucide="calendar" style="width:12px;height:12px;color:var(--primary)"></i>Oylik
+                o'rtacha</div>
+            <div class="kpi-val" id="kpiAvg">89</div>
+            <div class="kpi-sub kpi-dn"><i data-lucide="arrow-down-right" style="width:12px;height:12px"></i>−4.1%
+                o'tgan oyga</div>
+            <div class="kpi-spark"><canvas id="sparkAvg" height="36"></canvas></div>
+        </div>
+        <!-- KPI 3 -->
+        <div class="panel kpi-card">
+            <div class="kpi-lbl"><i data-lucide="zap" style="width:12px;height:12px;color:#f59e0b"></i>Anomaliyalar
+            </div>
+            <div class="kpi-val" id="kpiAnom">7</div>
+            <div class="kpi-sub kpi-up"><i data-lucide="arrow-up-right" style="width:12px;height:12px"></i>+2 ta yangi
+            </div>
+            <div class="kpi-spark"><canvas id="sparkAnom" height="36"></canvas></div>
+        </div>
+        <!-- KPI 4 -->
+        <div class="panel kpi-card">
+            <div class="kpi-lbl"><i data-lucide="shield-check" style="width:12px;height:12px;color:#22c55e"></i>Xavf
+                indeksi</div>
+            <div class="kpi-val" id="kpiRisk">6.4</div>
+            <div class="kpi-sub kpi-neu"><i data-lucide="minus" style="width:12px;height:12px"></i>O'zgarishsiz</div>
+            <div class="kpi-spark"><canvas id="sparkRisk" height="36"></canvas></div>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="mon-grid">
+
+        <!-- LEFT COLUMN -->
+        <div class="left-col">
+
+            <!-- TREND TAHLIL -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                        <div class="bp-title"><span class="badge">1</span> Trend tahlil — anomaliya detektori</div>
+                        <div class="tab-row" id="trendTabs" style="margin-bottom:0">
+                            <button class="tb on" data-k="monthly">Oylik</button>
+                            <button class="tb" data-k="weekly">Haftalik</button>
+                            <button class="tb" data-k="quarterly">Choraklik</button>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap;">
+                        <div
+                            style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted)">
+                            <span
+                                style="display:inline-block;width:24px;height:3px;background:#3b82f6;border-radius:99px"></span>2025
+                        </div>
+                        <div
+                            style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted)">
+                            <span
+                                style="display:inline-block;width:24px;height:3px;background:#94a3b8;border-radius:99px;opacity:.6;"></span>2024
+                        </div>
+                        <div
+                            style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#ef4444">
+                            <span class="anomaly-dot" style="background:#ef4444"></span>Anomaliya
+                        </div>
+                        <div
+                            style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:#f59e0b">
+                            <span class="anomaly-dot" style="background:#f59e0b"></span>O'sish signali
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body">
+                    <div style="position:relative;height:300px;width:100%">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOLISHTIRISH REJIMI -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                        <div class="bp-title"><span class="badge">2</span> Viloyatlar solishtirish rejimi</div>
+                        <div class="tab-row" id="cmpTabs" style="margin-bottom:0">
+                            <button class="tb on" data-k="bar">Ustun</button>
+                            <button class="tb" data-k="radar">Radar</button>
+                        </div>
+                    </div>
+                    <div class="cmp-row" style="margin-top:12px;margin-bottom:0">
+                        <div style="display:flex;align-items:center;gap:8px;flex:1;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:140px;">
+                                <span
+                                    style="width:10px;height:10px;border-radius:3px;background:#3b82f6;flex-shrink:0"></span>
+                                <select class="cmp-sel" id="cmpA">
+                                    <option value="0">Toshkent shahri</option>
+                                    <option value="1">Toshkent viloyati</option>
+                                    <option value="2">Farg'ona viloyati</option>
+                                    <option value="3">Andijon viloyati</option>
+                                    <option value="4">Namangan viloyati</option>
+                                    <option value="5">Samarqand viloyati</option>
+                                    <option value="6">Buxoro viloyati</option>
+                                    <option value="7">Xorazm viloyati</option>
+                                </select>
+                            </div>
+                            <span class="cmp-vs">VS</span>
+                            <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:140px;">
+                                <span
+                                    style="width:10px;height:10px;border-radius:3px;background:#f59e0b;flex-shrink:0"></span>
+                                <select class="cmp-sel" id="cmpB">
+                                    <option value="0">Toshkent shahri</option>
+                                    <option value="1">Toshkent viloyati</option>
+                                    <option value="2" selected>Farg'ona viloyati</option>
+                                    <option value="3">Andijon viloyati</option>
+                                    <option value="4">Namangan viloyati</option>
+                                    <option value="5">Samarqand viloyati</option>
+                                    <option value="6">Buxoro viloyati</option>
+                                    <option value="7">Xorazm viloyati</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body">
+                    <div style="position:relative;height:280px;width:100%">
+                        <canvas id="cmpChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATA TABLE -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                        <div class="bp-title"><span class="badge">3</span> Batafsil ma'lumotlar jadvali</div>
+                        <div
+                            style="display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted)">
+                            <span id="tblCount">14 ta yozuv</span>
+                            <button onclick="exportTable()"
+                                style="display:flex;align-items:center;gap:5px;background:none;border:1.5px solid var(--border);border-radius:9px;padding:5px 12px;font-size:11px;font-weight:700;font-family:inherit;color:var(--muted);cursor:pointer;transition:all .2s;"
+                                onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'"
+                                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                                <i data-lucide="download" style="width:11px;height:11px"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body" style="padding-top:16px">
+                    <div class="tbl-search">
+                        <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                        <input id="tblSearch" type="text" placeholder="Viloyat nomi bo'yicha qidirish...">
+                    </div>
+                    <div class="tbl-wrap">
+                        <table id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th class="td-rank" onclick="sortTable(0)">#</th>
+                                    <th onclick="sortTable(1)">Viloyat</th>
+                                    <th onclick="sortTable(2)">2025</th>
+                                    <th onclick="sortTable(3)">2024</th>
+                                    <th onclick="sortTable(4)">O'zgarish</th>
+                                    <th onclick="sortTable(5)">Trend</th>
+                                    <th onclick="sortTable(6)">Xavf</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tblBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="right-col">
+
+            <!-- ANOMALIYA DETEKTORI -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div class="bp-title"><span class="badge">4</span> Anomaliya detektori</div>
+                        <span
+                            style="font-size:10px;font-weight:800;background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:99px">7
+                            ta faol</span>
+                    </div>
+                </div>
+                <div class="bp-body" style="padding-top:16px">
+                    <div id="anomList"></div>
+                </div>
+            </div>
+
+            <!-- XAVF DARAJASI -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div style="display:flex;align-items:center;justify-content:space-between">
+                        <div class="bp-title"><span class="badge">5</span> Viloyat xavf darajasi</div>
+                        <div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800">
+                            <span style="display:flex;align-items:center;gap:4px;color:#dc2626"><span
+                                    style="width:7px;height:7px;border-radius:50%;background:#dc2626;display:inline-block"></span>Yuqori</span>
+                            <span style="display:flex;align-items:center;gap:4px;color:#d97706"><span
+                                    style="width:7px;height:7px;border-radius:50%;background:#f59e0b;display:inline-block"></span>O'rta</span>
+                            <span style="display:flex;align-items:center;gap:4px;color:#16a34a"><span
+                                    style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block"></span>Past</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bp-body" style="padding-top:16px">
+                    <div id="riskList"></div>
+                </div>
+            </div>
+
+            <!-- JINOYAT TAQSIMOTI DONUT -->
+            <div class="panel bp">
+                <div class="bp-head">
+                    <div class="bp-title"><span class="badge">6</span> Jinoyat turi taqsimoti</div>
+                </div>
+                <div class="bp-body">
+                    <div style="position:relative;height:200px;width:200px;margin:0 auto 16px">
+                        <canvas id="donutChart"></canvas>
+                        <div
+                            style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                            <b style="font-size:22px;font-weight:800;color:var(--text)">1,073</b>
+                            <small style="font-size:10px;color:var(--muted);font-weight:600">Jami 2025</small>
+                        </div>
+                    </div>
+                    <div id="donutLegend" style="display:flex;flex-direction:column;gap:7px;"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            /* ── SPOTLIGHT & GLOW ── */
+            const spotlight = document.getElementById('global-spotlight');
+            let lastX = 0, lastY = 0, spotVis = false;
+            document.addEventListener('mousemove', e => {
+                lastX = e.clientX; lastY = e.clientY;
+                spotlight.style.transform = `translate(${lastX}px,${lastY}px) translate(-50%,-50%)`;
+                if (!spotVis) { spotVis = true; spotlight.style.opacity = '1'; }
+            });
+            document.addEventListener('mouseleave', () => { spotVis = false; spotlight.style.opacity = '0'; });
+            document.querySelectorAll('.panel,.sc,.hdr').forEach(el => {
+                el.addEventListener('mousemove', e => {
+                    const r = el.getBoundingClientRect();
+                    el.style.setProperty('--glow-x', (e.clientX - r.left) + 'px');
+                    el.style.setProperty('--glow-y', (e.clientY - r.top) + 'px');
+                    el.style.setProperty('--glow-intensity', '0.5');
+                });
+                el.addEventListener('mouseleave', () => el.style.setProperty('--glow-intensity', '0'));
+            });
+            document.addEventListener('click', e => {
+                const r = document.createElement('div'); r.className = 'cmai-ripple';
+                const sz = 80; r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:${sz}px;height:${sz}px;`;
+                document.body.appendChild(r); setTimeout(() => r.remove(), 900);
+                const p = document.createElement('div'); p.className = 'cmai-particle';
+                p.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;`;
+                document.body.appendChild(p);
+                p.animate([{ opacity: 1, transform: `translate(-50%,-50%) scale(1)` }, { opacity: 0, transform: `translate(-50%,-50%) translate(${(Math.random() - .5) * 40}px,${-30 - Math.random() * 30}px) scale(0)` }], { duration: 600, easing: 'cubic-bezier(.2,0,.6,1)' }).onfinish = () => p.remove();
+            });
+
+            /* ── SCROLL HDR ── */
+            const hdr = document.querySelector('.hdr');
+            window.addEventListener('scroll', () => hdr.classList.toggle('scrolled', window.scrollY > 20));
+
+            /* ── GOOEY NAV ── */
+            const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
+            const particleLayer = document.getElementById('gnavParticleLayer');
+            let activeIndex = -1;
+            const COLORS = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#1d4ed8', '#3b82f6'];
+            function spawnParticles(liEl) { const rect = liEl.getBoundingClientRect(), cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2, COUNT = 18, RADIUS = 55; for (let i = 0; i < COUNT; i++) { const angle = (360 / COUNT) * i + (Math.random() - .5) * 20, rad = angle * Math.PI / 180, dist = RADIUS * (0.7 + Math.random() * 0.7), tx = Math.cos(rad) * dist, ty = Math.sin(rad) * dist, size = 4 + Math.random() * 5, dur = 0.55 + Math.random() * 0.45, delay = Math.random() * 80, color = COLORS[Math.floor(Math.random() * COLORS.length)]; const dot = document.createElement('div'); dot.className = 'gnav-dot'; dot.style.cssText = `left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${color};box-shadow:0 0 ${size * 1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`; particleLayer.appendChild(dot); setTimeout(() => dot.remove(), (dur + delay / 1000 + 0.1) * 1000); } }
+            function activateItem(index) { if (activeIndex === index) return; if (activeIndex >= 0 && listItems[activeIndex]) listItems[activeIndex].classList.remove('active'); activeIndex = index; listItems[index].classList.add('active'); spawnParticles(listItems[index]); }
+            listItems.forEach((li, i) => { li.addEventListener('click', () => activateItem(i)); });
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
+                let found = 0; listItems.forEach((li, i) => { const a = li.querySelector('a[data-page]'); if (a && a.dataset.page === page) found = i; });
+                activeIndex = found; listItems[found].classList.add('active');
+            }));
+
+            setTimeout(() => lucide.createIcons(), 200);
+
+            /* ══════════════════════════════════════
+               DATA
+            ══════════════════════════════════════ */
+            const MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+
+            const trendData = {
+                monthly: {
+                    y25: [72, 68, 85, 91, 88, 102, 97, 84, 76, 89, 94, 107],
+                    y24: [65, 59, 78, 83, 80, 95, 90, 77, 70, 82, 87, 98],
+                    anomalies: [{ idx: 5, type: 'red', label: 'Iyun: +7.4%' }, { idx: 11, type: 'orange', label: 'Dek: Signal' }]
+                },
+                weekly: {
+                    y25: [18, 22, 19, 24, 21, 26, 20, 25, 23, 28, 22, 27, 21, 24, 26, 29, 24, 31, 27, 25, 22, 28, 26, 30],
+                    y24: [16, 19, 17, 21, 18, 23, 18, 22, 20, 25, 19, 24, 18, 21, 23, 26, 21, 27, 24, 22, 20, 25, 23, 27],
+                    anomalies: [{ idx: 15, type: 'red', label: '6-hafta: Yuqori' }, { idx: 21, type: 'orange', label: 'Signal' }]
+                },
+                quarterly: {
+                    y25: [225, 281, 257, 310],
+                    y24: [202, 258, 237, 285],
+                    anomalies: [{ idx: 3, type: 'red', label: '4-chorak: O\'sish' }]
+                }
+            };
+
+            const regionNames = ['Toshkent sh.', 'Toshkent v.', 'Farg\'ona', 'Andijon', 'Namangan', 'Samarqand', 'Buxoro', 'Xorazm'];
+            const cmpData = [
+                { y25: [72, 81, 89, 95, 88, 102, 97, 107, 84, 76, 89, 94], y24: [65, 72, 78, 85, 80, 95, 90, 98, 77, 70, 82, 87] },
+                { y25: [43, 48, 52, 55, 50, 58, 54, 61, 48, 44, 51, 56], y24: [38, 43, 47, 50, 45, 53, 49, 56, 43, 40, 46, 51] },
+                { y25: [62, 68, 74, 79, 73, 85, 80, 89, 71, 65, 76, 82], y24: [57, 62, 67, 72, 66, 78, 73, 82, 64, 59, 69, 75] },
+                { y25: [55, 60, 67, 71, 66, 78, 73, 81, 64, 59, 69, 74], y24: [50, 55, 61, 65, 60, 71, 67, 75, 58, 54, 63, 68] },
+                { y25: [44, 49, 54, 58, 53, 63, 59, 67, 52, 47, 56, 61], y24: [39, 44, 49, 53, 48, 58, 54, 62, 47, 43, 51, 56] },
+                { y25: [60, 66, 73, 78, 71, 84, 79, 88, 69, 64, 75, 80], y24: [55, 61, 67, 72, 65, 77, 72, 81, 63, 58, 68, 73] },
+                { y25: [31, 35, 39, 42, 38, 46, 43, 49, 38, 34, 41, 45], y24: [28, 31, 35, 38, 34, 41, 38, 44, 34, 31, 37, 41] },
+                { y25: [26, 29, 33, 36, 32, 39, 36, 42, 32, 29, 35, 38], y24: [23, 26, 30, 33, 29, 36, 33, 39, 29, 26, 31, 35] }
+            ];
+
+            const tableData = [
+                { name: "Toshkent shahri", v25: 1073, v24: 956, risk: 'h' },
+                { name: "Farg'ona viloyati", v25: 890, v24: 821, risk: 'h' },
+                { name: "Samarqand viloyati", v25: 820, v24: 788, risk: 'h' },
+                { name: "Andijon viloyati", v25: 732, v24: 695, risk: 'm' },
+                { name: "Qashqadaryo viloyati", v25: 648, v24: 612, risk: 'm' },
+                { name: "Namangan viloyati", v25: 564, v24: 578, risk: 'm' },
+                { name: "Toshkent viloyati", v25: 516, v24: 490, risk: 'm' },
+                { name: "Surxondaryo viloyati", v25: 444, v24: 418, risk: 'm' },
+                { name: "Buxoro viloyati", v25: 372, v24: 356, risk: 'l' },
+                { name: "Xorazm viloyati", v25: 312, v24: 304, risk: 'l' },
+                { name: "Navoiy viloyati", v25: 216, v24: 208, risk: 'l' },
+                { name: "Qoraqalpog'iston", v25: 192, v24: 200, risk: 'l' },
+                { name: "Jizzax viloyati", v25: 144, v24: 138, risk: 'l' },
+                { name: "Sirdaryo viloyati", v25: 96, v24: 94, risk: 'l' },
+            ];
+
+            const anomalies = [
+                { type: 'red', icon: 'trending-up', title: "Toshkent shahri", sub: "Iyun oyida +23% keskin o'sish", badge: '+23%' },
+                { type: 'red', icon: 'alert-triangle', title: "Farg'ona viloyati", sub: "3 oy ketma-ket o'sish tendensiyasi", badge: '3 oy' },
+                { type: 'yellow', icon: 'zap', title: "Andijon viloyati", sub: "Haftalik ko'rsatkich chegaraga yaqin", badge: 'Diqqat' },
+                { type: 'yellow', icon: 'zap', title: "Samarqand viloyati", sub: "Dekabr oyida kutilmagan o'sish", badge: 'Signal' },
+                { type: 'yellow', icon: 'activity', title: "Qashqadaryo viloyati", sub: "O'rtacha ko'rsatkichdan 18% yuqori", badge: '+18%' },
+                { type: 'blue', icon: 'info', title: "Namangan viloyati", sub: "Ko'rsatkich barqarorlashdi", badge: 'Barqaror' },
+                { type: 'blue', icon: 'check-circle', title: "Navoiy viloyati", sub: "5 oy davomida pasayish", badge: '−12%' },
+            ];
+
+            const riskData = [
+                { name: "Toshkent shahri", val: 89, risk: 'h' },
+                { name: "Farg'ona viloyati", val: 74, risk: 'h' },
+                { name: "Samarqand viloyati", val: 68, risk: 'h' },
+                { name: "Andijon viloyati", val: 61, risk: 'm' },
+                { name: "Qashqadaryo viloyati", val: 54, risk: 'm' },
+                { name: "Namangan viloyati", val: 47, risk: 'm' },
+                { name: "Toshkent viloyati", val: 43, risk: 'm' },
+                { name: "Surxondaryo viloyati", val: 37, risk: 'm' },
+                { name: "Buxoro viloyati", val: 31, risk: 'l' },
+                { name: "Xorazm viloyati", val: 26, risk: 'l' },
+                { name: "Navoiy viloyati", val: 18, risk: 'l' },
+                { name: "Qoraqalpog'iston", val: 16, risk: 'l' },
+                { name: "Jizzax viloyati", val: 12, risk: 'l' },
+                { name: "Sirdaryo viloyati", val: 8, risk: 'l' },
+            ];
+
+            const donutData = {
+                labels: ["Mulkiy", "Shaxsga qarshi", "Iqtisodiy", "Narkotik", "Yo'l-transport", "Boshqalar"],
+                values: [312, 241, 178, 143, 118, 81],
+                colors: ['#1e40af', '#3b82f6', '#f59e0b', '#ef4444', '#22c55e', '#94a3b8']
+            };
+
+            /* ══════════════════════════════════════
+               SPARKLINES
+            ══════════════════════════════════════ */
+            function mkSpark(id, data, color) {
+                const ctx = document.getElementById(id); if (!ctx) return;
+                new Chart(ctx, { type: 'line', data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor: color, borderWidth: 2, fill: true, backgroundColor: color + '18', tension: 0.4, pointRadius: 0 }] }, options: { animation: false, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } } });
+            }
+            mkSpark('sparkTotal', [65, 72, 78, 85, 80, 95, 90, 98, 84, 82, 87, 107], '#ef4444');
+            mkSpark('sparkAvg', [81, 78, 85, 91, 88, 95, 97, 92, 84, 87, 89, 85], '#1e40af');
+            mkSpark('sparkAnom', [2, 3, 4, 3, 5, 4, 6, 5, 7, 6, 7, 7], '#f59e0b');
+            mkSpark('sparkRisk', [6.8, 6.7, 6.5, 6.6, 6.4, 6.5, 6.3, 6.4, 6.5, 6.4, 6.4, 6.4], '#22c55e');
+
+            /* ══════════════════════════════════════
+               TREND CHART
+            ══════════════════════════════════════ */
+            const TT = {
+                backgroundColor: 'rgba(255,255,255,.97)', borderWidth: 0, borderRadius: 12,
+                titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '800' },
+                bodyFont: { family: 'Plus Jakarta Sans', size: 11 },
+                padding: 12, boxPadding: 5
+            };
+            let trendMode = 'monthly';
+            const trendCtx = document.getElementById('trendChart');
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: MONTHS,
+                    datasets: [
+                        { label: '2025', data: trendData.monthly.y25, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.08)', borderWidth: 2.5, tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#3b82f6', pointBorderColor: 'white', pointBorderWidth: 2, pointHoverRadius: 6 },
+                        { label: '2024', data: trendData.monthly.y24, borderColor: '#94a3b8', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0.4, fill: false, borderDash: [5, 4], pointRadius: 0, pointHoverRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: TT },
+                    scales: {
+                        y: { display: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8', maxTicksLimit: 5 } },
+                        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8' } }
+                    }
+                },
+                plugins: [{
+                    id: 'anomalyMarkers',
+                    afterDraw(chart) {
+                        const { ctx: c, scales: { x, y } } = chart;
+                        trendData[trendMode].anomalies.forEach(a => {
+                            const xPos = x.getPixelForValue(a.idx), yPos = y.getPixelForValue(chart.data.datasets[0].data[a.idx]);
+                            c.save();
+                            c.beginPath(); c.arc(xPos, yPos, 7, 0, Math.PI * 2);
+                            c.fillStyle = a.type === 'red' ? '#ef4444' : '#f59e0b'; c.fill();
+                            c.strokeStyle = 'white'; c.lineWidth = 2; c.stroke();
+                            c.restore();
+                        });
+                    }
+                }]
+            });
+
+            document.getElementById('trendTabs').addEventListener('click', e => {
+                const btn = e.target.closest('.tb'); if (!btn) return;
+                document.querySelectorAll('#trendTabs .tb').forEach(b => b.classList.remove('on'));
+                btn.classList.add('on'); trendMode = btn.dataset.k;
+                const d = trendData[trendMode];
+                const labels = trendMode === 'monthly' ? MONTHS : trendMode === 'quarterly' ? ['1-chorak', '2-chorak', '3-chorak', '4-chorak'] : d.y25.map((_, i) => (i + 1) + '-h');
+                trendChart.data.labels = labels;
+                trendChart.data.datasets[0].data = d.y25;
+                trendChart.data.datasets[1].data = d.y24;
+                trendChart.update('active');
+            });
+
+            /* ══════════════════════════════════════
+               COMPARE CHART
+            ══════════════════════════════════════ */
+            let cmpMode = 'bar';
+            const cmpCtx = document.getElementById('cmpChart');
+            const cmpChart = new Chart(cmpCtx, {
+                type: 'bar',
+                data: {
+                    labels: MONTHS,
+                    datasets: [
+                        { label: regionNames[0], data: cmpData[0].y25, backgroundColor: 'rgba(59,130,246,0.75)', borderRadius: 5, borderSkipped: false },
+                        { label: regionNames[2], data: cmpData[2].y25, backgroundColor: 'rgba(245,158,11,0.75)', borderRadius: 5, borderSkipped: false }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '700' }, usePointStyle: true, pointStyle: 'circle', padding: 16, color: '#64748b' } },
+                        tooltip: TT
+                    },
+                    scales: {
+                        y: { display: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8', maxTicksLimit: 5 } },
+                        x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8' } }
+                    }
+                }
+            });
+
+            function updateCmp() {
+                const a = parseInt(document.getElementById('cmpA').value);
+                const b = parseInt(document.getElementById('cmpB').value);
+                cmpChart.data.datasets[0].label = regionNames[a];
+                cmpChart.data.datasets[0].data = cmpData[a].y25;
+                cmpChart.data.datasets[1].label = regionNames[b];
+                cmpChart.data.datasets[1].data = cmpData[b].y25;
+                cmpChart.update('active');
+            }
+            document.getElementById('cmpA').addEventListener('change', updateCmp);
+            document.getElementById('cmpB').addEventListener('change', updateCmp);
+
+            document.getElementById('cmpTabs').addEventListener('click', e => {
+                const btn = e.target.closest('.tb'); if (!btn) return;
+                document.querySelectorAll('#cmpTabs .tb').forEach(b => b.classList.remove('on'));
+                btn.classList.add('on'); cmpMode = btn.dataset.k;
+                const a = parseInt(document.getElementById('cmpA').value);
+                const b = parseInt(document.getElementById('cmpB').value);
+                if (cmpMode === 'radar') {
+                    cmpChart.config.type = 'radar';
+                    cmpChart.data.labels = ['Mulkiy', 'Shaxsga', 'Iqtisodiy', 'Narkotik', 'Yo\'l', 'Boshqa'];
+                    cmpChart.data.datasets[0].data = [280, 195, 140, 110, 95, 65];
+                    cmpChart.data.datasets[1].data = [230, 168, 122, 96, 82, 56];
+                    cmpChart.data.datasets[0].backgroundColor = 'rgba(59,130,246,0.15)';
+                    cmpChart.data.datasets[1].backgroundColor = 'rgba(245,158,11,0.15)';
+                    cmpChart.data.datasets[0].borderColor = '#3b82f6';
+                    cmpChart.data.datasets[1].borderColor = '#f59e0b';
+                    cmpChart.data.datasets[0].borderRadius = undefined;
+                    cmpChart.data.datasets[1].borderRadius = undefined;
+                    cmpChart.options.scales = { r: { grid: { color: '#f1f5f9' }, ticks: { display: false }, pointLabels: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }, color: '#64748b' } } };
+                } else {
+                    cmpChart.config.type = 'bar';
+                    cmpChart.data.labels = MONTHS;
+                    cmpChart.data.datasets[0].data = cmpData[a].y25;
+                    cmpChart.data.datasets[1].data = cmpData[b].y25;
+                    cmpChart.data.datasets[0].backgroundColor = 'rgba(59,130,246,0.75)';
+                    cmpChart.data.datasets[1].backgroundColor = 'rgba(245,158,11,0.75)';
+                    cmpChart.data.datasets[0].borderRadius = 5;
+                    cmpChart.data.datasets[1].borderRadius = 5;
+                    cmpChart.options.scales = { y: { display: true, grid: { color: '#f1f5f9' }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8', maxTicksLimit: 5 } }, x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: '600', family: 'Plus Jakarta Sans' }, color: '#94a3b8' } } };
+                }
+                cmpChart.update();
+            });
+
+            /* ══════════════════════════════════════
+               DONUT CHART
+            ══════════════════════════════════════ */
+            new Chart(document.getElementById('donutChart'), {
+                type: 'doughnut',
+                data: { labels: donutData.labels, datasets: [{ data: donutData.values, backgroundColor: donutData.colors, borderWidth: 3, borderColor: 'rgba(255,255,255,0.95)', hoverOffset: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false }, tooltip: TT } }
+            });
+            const dl = document.getElementById('donutLegend');
+            const tot = donutData.values.reduce((a, b) => a + b, 0);
+            donutData.labels.forEach((lbl, i) => {
+                const pct = Math.round(donutData.values[i] / tot * 100);
+                dl.innerHTML += `<div style="display:flex;align-items:center;gap:8px"><span style="width:10px;height:10px;border-radius:3px;background:${donutData.colors[i]};flex-shrink:0"></span><span style="font-size:12px;font-weight:600;color:var(--text);flex:1">${lbl}</span><span style="font-size:12px;font-weight:800;color:var(--text)">${donutData.values[i]}</span><span style="font-size:11px;font-weight:700;color:var(--muted)">${pct}%</span></div>`;
+            });
+
+            /* ══════════════════════════════════════
+               ANOMALY LIST
+            ══════════════════════════════════════ */
+            const al = document.getElementById('anomList');
+            anomalies.forEach(a => {
+                al.innerHTML += `<div class="anom-item ${a.type}">
+            <div class="anom-icon ${a.type}"><i data-lucide="${a.icon}" style="width:15px;height:15px;color:${a.type === 'red' ? '#dc2626' : a.type === 'yellow' ? '#d97706' : '#2563eb'}"></i></div>
+            <div style="flex:1;min-width:0">
+                <div class="anom-title">${a.title}</div>
+                <div class="anom-sub">${a.sub}</div>
+            </div>
+            <span class="anom-badge ${a.type}">${a.badge}</span>
+        </div>`;
+            });
+
+            /* ══════════════════════════════════════
+               RISK LIST
+            ══════════════════════════════════════ */
+            const rl = document.getElementById('riskList');
+            const rColors = { h: '#ef4444', m: '#f59e0b', l: '#22c55e' };
+            const rLabels = { h: 'Yuqori', m: "O'rta", l: 'Past' };
+            const mx = riskData[0].val;
+            riskData.forEach(d => {
+                rl.innerHTML += `<div class="risk-row">
+            <span class="risk-name">${d.name}</span>
+            <div class="risk-track"><div class="risk-fill" style="width:${Math.round(d.val / mx * 100)}%;background:${rColors[d.risk]}"></div></div>
+            <span class="risk-badge ${d.risk}">${rLabels[d.risk]}</span>
+        </div>`;
+            });
+
+            /* ══════════════════════════════════════
+               DATA TABLE
+            ══════════════════════════════════════ */
+            let sortCol = 2, sortDir = -1;
+            let filteredData = [...tableData];
+            function renderTable() {
+                const body = document.getElementById('tblBody');
+                const mx2 = Math.max(...filteredData.map(d => d.v25));
+                body.innerHTML = filteredData.map((d, i) => {
+                    const diff = d.v25 - d.v24;
+                    const pct = ((diff / d.v24) * 100).toFixed(1);
+                    const tClass = diff > 0 ? 'up' : diff < 0 ? 'dn' : 'neu';
+                    const tText = diff > 0 ? `+${pct}%` : diff < 0 ? `${pct}%` : '0%';
+                    const riskC = { h: '#ef4444', m: '#f59e0b', l: '#22c55e' }[d.risk];
+                    const riskL = { h: 'Yuqori', m: "O'rta", l: 'Past' }[d.risk];
+                    const rBg = { h: '#fee2e2', m: '#fef3c7', l: '#dcfce7' }[d.risk];
+                    const rFc = { h: '#dc2626', m: '#d97706', l: '#16a34a' }[d.risk];
+                    return `<tr>
+                <td><span class="td-rank" style="color:${i < 3 ? '#ef4444' : i < 7 ? '#1e40af' : '#94a3b8'};font-size:10px;font-weight:800">${i + 1}</span></td>
+                <td style="font-weight:700">${d.name}</td>
+                <td>
+                    <div class="td-bar">
+                        <span style="font-size:13px;font-weight:800;color:var(--text);width:38px;flex-shrink:0">${d.v25}</span>
+                        <div class="td-bar-track"><div class="td-bar-fill" style="width:${Math.round(d.v25 / mx2 * 100)}%;background:#3b82f6"></div></div>
+                    </div>
+                </td>
+                <td style="color:var(--muted)">${d.v24}</td>
+                <td><span class="td-trend ${tClass}">${tText}</span></td>
+                <td><canvas id="tblSpark_${i}" width="80" height="22" style="display:inline-block"></canvas></td>
+                <td><span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;background:${rBg};color:${rFc}">${riskL}</span></td>
+            </tr>`;
+                }).join('');
+                document.getElementById('tblCount').textContent = filteredData.length + ' ta yozuv';
+                filteredData.forEach((_, i) => {
+                    const c = document.getElementById(`tblSpark_${i}`); if (!c) return;
+                    const sparkVals = Array.from({ length: 6 }, () => Math.floor(Math.random() * 60 + 20));
+                    new Chart(c, { type: 'line', data: { labels: sparkVals.map((_, j) => j), datasets: [{ data: sparkVals, borderColor: '#3b82f6', borderWidth: 1.5, fill: false, tension: 0.4, pointRadius: 0 }] }, options: { animation: false, responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } } });
+                });
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+
+            function sortTable(col) {
+                const th = document.querySelectorAll('#dataTable thead th');
+                th.forEach(t => { t.classList.remove('sort-asc', 'sort-desc'); });
+                if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = -1; }
+                th[col].classList.add(sortDir === -1 ? 'sort-desc' : 'sort-asc');
+                filteredData.sort((a, b) => {
+                    const vals = [0, a.name, a.v25, a.v24, (a.v25 - a.v24) / a.v24, 0, a.risk];
+                    const valb = [0, b.name, b.v25, b.v24, (b.v25 - b.v24) / b.v24, 0, b.risk];
+                    return (vals[col] > valb[col] ? 1 : -1) * sortDir;
+                });
+                renderTable();
+            }
+            window.sortTable = sortTable;
+
+            document.getElementById('tblSearch').addEventListener('input', e => {
+                const q = e.target.value.toLowerCase();
+                filteredData = tableData.filter(d => d.name.toLowerCase().includes(q));
+                renderTable();
+            });
+
+            window.exportTable = function () {
+                const rows = [['#', 'Viloyat', '2025', '2024', "O'zgarish", 'Xavf'], ...filteredData.map((d, i) => [i + 1, d.name, d.v25, d.v24, ((d.v25 - d.v24) / d.v24 * 100).toFixed(1) + '%', { h: 'Yuqori', m: "O'rta", l: 'Past' }[d.risk]])];
+                const csv = rows.map(r => r.join(',')).join('\n');
+                const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv); a.download = 'cmai_monitoring.csv'; a.click();
+            };
+
+            renderTable();
+            // Default sort by v25 desc
+            document.querySelectorAll('#dataTable thead th')[2].classList.add('sort-desc');
+
+            /* ══════════════════════════════════════
+               FILTER APPLY
+            ══════════════════════════════════════ */
+            document.getElementById('applyBtn').addEventListener('click', () => {
+                const yr = document.getElementById('fYear').value;
+                const mn = document.getElementById('fMonth').value;
+                const rg = document.getElementById('fRegion').value;
+                let base = 1073;
+                if (yr === '2023') base = 956; else if (yr === '2024') base = 1028;
+                if (mn !== 'all') base = Math.round(base / 12 * (0.8 + Math.random() * 0.4));
+                if (rg !== 'all') base = Math.round(base * 0.12 * (0.7 + Math.random() * 0.6));
+                document.getElementById('filterStatus').innerHTML = `Natija: <b style="color:var(--primary)">${base.toLocaleString()}</b> ta hodisa`;
+                document.getElementById('kpiTotal').textContent = base.toLocaleString();
+                document.getElementById('kpiAvg').textContent = Math.round(base / 12);
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                document.getElementById('fYear').value = 'all';
+                document.getElementById('fMonth').value = 'all';
+                document.getElementById('fRegion').value = 'all';
+                document.getElementById('fType').value = 'all';
+                document.getElementById('filterStatus').innerHTML = `Natija: <b style="color:var(--primary)">1,073</b> ta hodisa`;
+                document.getElementById('kpiTotal').textContent = '1,073';
+                document.getElementById('kpiAvg').textContent = '89';
+            });
+
+        })();
+    </script>
+</body>
+
+</html>

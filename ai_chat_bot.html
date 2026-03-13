@@ -62,7 +62,6 @@
             border-radius: 99px
         }
 
-        /* ── PANEL ── */
         .panel {
             background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(20px) saturate(1.4);
@@ -79,16 +78,12 @@
             transition: box-shadow 0.3s ease;
         }
 
-        /* ══ BORDER GLOW effect on panels ══ */
         .panel::after {
             content: '';
             position: absolute;
             inset: 0;
             padding: 2px;
-            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.7)) 0%,
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.3)) 40%,
-                    transparent 65%);
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y), rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%, rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
             border-radius: inherit;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -99,7 +94,7 @@
             transition: opacity 0.3s ease;
         }
 
-        /* header border glow */
+        /* HEADER */
         .hdr {
             --glow-x: 50%;
             --glow-y: 50%;
@@ -113,10 +108,7 @@
             position: absolute;
             inset: 0;
             padding: 2px;
-            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.6)) 0%,
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.25)) 40%,
-                    transparent 65%);
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y), rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%, rgba(var(--glow-color), calc(var(--glow-intensity)*0.25)) 40%, transparent 65%);
             border-radius: inherit;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -127,7 +119,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* ══════════ HEADER ══════════ */
         .hdr {
             height: var(--hdr);
             flex-shrink: 0;
@@ -152,7 +143,6 @@
             border-radius: 0;
             background: rgba(255, 255, 255, 0.82);
             backdrop-filter: blur(32px) saturate(1.6);
-            -webkit-backdrop-filter: blur(32px) saturate(1.6);
             border-left: none;
             border-right: none;
             border-top: none;
@@ -243,21 +233,14 @@
             border: 2px solid white
         }
 
-        /* ════════════════════════════════════
-           GLOBAL SPOTLIGHT
-        ════════════════════════════════════ */
+        /* SPOTLIGHT */
         #global-spotlight {
             position: fixed;
             width: 700px;
             height: 700px;
             border-radius: 50%;
             pointer-events: none;
-            background: radial-gradient(circle,
-                    rgba(30, 64, 175, 0.13) 0%,
-                    rgba(30, 64, 175, 0.07) 20%,
-                    rgba(59, 130, 246, 0.04) 40%,
-                    rgba(59, 130, 246, 0.01) 60%,
-                    transparent 70%);
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.13) 0%, rgba(30, 64, 175, 0.07) 20%, rgba(59, 130, 246, 0.04) 40%, rgba(59, 130, 246, 0.01) 60%, transparent 70%);
             z-index: 9999;
             opacity: 0;
             transform: translate(-50%, -50%);
@@ -266,9 +249,6 @@
             will-change: transform, opacity;
         }
 
-        /* ════════════════════════════════════
-           PARTICLES
-        ════════════════════════════════════ */
         .cmai-particle {
             position: fixed;
             width: 4px;
@@ -283,9 +263,6 @@
             will-change: transform, opacity;
         }
 
-        /* ════════════════════════════════════
-           CLICK RIPPLE
-        ════════════════════════════════════ */
         .cmai-ripple {
             position: fixed;
             border-radius: 50%;
@@ -293,10 +270,7 @@
             z-index: 9997;
             transform: translate(-50%, -50%) scale(0);
             border: 1.5px solid rgba(30, 64, 175, 0.5);
-            background: radial-gradient(circle,
-                    rgba(30, 64, 175, 0.12) 0%,
-                    rgba(59, 130, 246, 0.06) 40%,
-                    transparent 70%);
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.12) 0%, rgba(59, 130, 246, 0.06) 40%, transparent 70%);
             animation: rippleOut 0.8s cubic-bezier(0.2, 0, 0.6, 1) forwards;
         }
 
@@ -316,33 +290,32 @@
             }
         }
 
-        .cmai-ripple-2 {
-            animation-delay: 0.12s;
-            width: 80px;
-            height: 80px;
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .cmai-ripple-3 {
-            animation-delay: 0.24s;
-            width: 130px;
-            height: 130px;
-            border-color: rgba(59, 130, 246, 0.15);
-        }
-
-        /* ════ NAV ════ */
+        /* NAV */
         .gooey-nav-container {
+            position: relative;
             display: flex;
             align-items: center;
+        }
+
+        .gooey-nav-container>nav {
+            position: relative;
+            transform: translate3d(0, 0, 0.01px);
+            z-index: 3;
         }
 
         .gooey-nav-container>nav>ul {
             display: flex;
-            gap: 4px;
+            gap: 2px;
             list-style: none;
             padding: 0;
             margin: 0;
             align-items: center;
+        }
+
+        .gooey-nav-container>nav>ul>li {
+            position: relative;
+            cursor: pointer;
+            border-radius: 100vw;
         }
 
         .gooey-nav-container>nav>ul>li>a {
@@ -355,39 +328,63 @@
             white-space: nowrap;
             font-family: inherit;
             position: relative;
-            transition: color 0.2s;
+            z-index: 2;
+            transition: color 0.25s ease;
+            border-radius: 100vw;
         }
 
-        .gooey-nav-container>nav>ul>li>a::after {
-            content: '';
+        .gooey-nav-container>nav>ul>li.active>a {
+            color: white;
+        }
+
+        .gooey-nav-container>nav>ul>li>.gnav-bg {
             position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 2.5px;
+            inset: 0;
+            border-radius: 100vw;
             background: var(--primary);
-            border-radius: 99px;
-            transition: width .25s cubic-bezier(.4, 0, .2, 1);
+            z-index: 1;
+            transform: scale(0.3);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
         }
 
-        .gooey-nav-container>nav>ul>li>a:hover {
-            color: var(--text);
+        .gooey-nav-container>nav>ul>li.active>.gnav-bg {
+            transform: scale(1);
+            opacity: 1;
         }
 
-        .gooey-nav-container>nav>ul>li>a:hover::after {
-            width: 60%;
+        #gnavParticleLayer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99999;
+            overflow: visible;
         }
 
-        .gooey-nav-container>nav>ul>li>a.act {
-            color: var(--primary);
+        .gnav-dot {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: gnavDot var(--dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
         }
 
-        .gooey-nav-container>nav>ul>li>a.act::after {
-            width: 60%;
+        @keyframes gnavDot {
+            0% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
         }
 
-        /* ════ LAYOUT ════ */
+        /* LAYOUT */
         .main {
             flex: 1;
             display: flex;
@@ -397,9 +394,11 @@
             z-index: 1;
         }
 
-        /* ════ SIDEBAR ════ */
+        /* ══════════════════════════════
+           SIDEBAR — yangilangan
+        ══════════════════════════════ */
         .sidebar {
-            flex: 0 0 280px;
+            flex: 0 0 260px;
             background: rgba(255, 255, 255, 0.78);
             backdrop-filter: blur(20px) saturate(1.4);
             -webkit-backdrop-filter: blur(20px) saturate(1.4);
@@ -421,9 +420,7 @@
             position: absolute;
             inset: 0;
             padding: 2px;
-            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.7)) 0%,
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.3)) 40%, transparent 65%);
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y), rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%, rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
             border-radius: inherit;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -433,24 +430,102 @@
             z-index: 10;
         }
 
-        .sb-head {
-            padding: 20px 18px 14px;
-            border-bottom: 1px solid var(--border);
+        /* NEW CHAT button */
+        .sb-top {
+            padding: 16px 16px 12px;
         }
 
-        .sb-title {
-            font-size: 11px;
+        .new-chat-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 16px -4px rgba(30, 64, 175, .5);
+            transition: all .22s;
+        }
+
+        .new-chat-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px -4px rgba(30, 64, 175, .6);
+        }
+
+        .new-chat-btn:active {
+            transform: translateY(0);
+        }
+
+        /* SEARCH */
+        .sb-search {
+            margin: 0 16px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 12px;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .sb-search:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, .1);
+            background: white;
+        }
+
+        .sb-search input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .sb-search input::placeholder {
+            color: #94a3b8
+        }
+
+        /* RECENTS */
+        .sb-recents {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px;
+        }
+
+        .sb-recents::-webkit-scrollbar {
+            width: 3px
+        }
+
+        .sb-recents::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 99px
+        }
+
+        .recents-label {
+            font-size: 9.5px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: .08em;
+            letter-spacing: .09em;
             color: var(--muted);
-            margin-bottom: 14px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .sb-title .dot {
+        .recents-label .dot {
             width: 6px;
             height: 6px;
             background: #22c55e;
@@ -472,51 +547,86 @@
             }
         }
 
-        .sq-list {
+        .chat-item {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background .15s;
+            border-left: 2px solid transparent;
+            margin-bottom: 1px;
         }
 
-        .sq {
-            padding: 9px 12px;
-            background: rgba(248, 250, 252, 0.8);
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            font-size: 11.5px;
-            font-weight: 500;
+        .chat-item:hover {
+            background: rgba(241, 245, 249, 0.7);
+        }
+
+        .chat-item.active-chat {
+            background: #eff6ff;
+            border-left-color: var(--primary);
+        }
+
+        .chat-item-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            flex-shrink: 0;
+            margin-top: 6px;
+            transition: background .15s;
+        }
+
+        .chat-item.active-chat .chat-item-dot {
+            background: var(--primary);
+        }
+
+        .chat-item-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .chat-item-title {
+            font-size: 12px;
+            font-weight: 600;
             color: var(--text);
-            cursor: pointer;
-            transition: all .18s;
-            text-align: left;
-            font-family: inherit;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
             line-height: 1.4;
         }
 
-        .sq:hover {
-            background: white;
-            border-color: #bfdbfe;
+        .chat-item.active-chat .chat-item-title {
             color: var(--primary);
-            transform: translateX(3px);
+            font-weight: 700;
         }
 
-        .sb-body {
-            padding: 16px 18px;
-            flex: 1;
-            overflow-y: auto;
+        .chat-item-meta {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--muted);
+            margin-top: 2px;
         }
 
-        .sb-body::-webkit-scrollbar {
-            width: 3px
+        .chat-item-time {
+            font-size: 10px;
+            font-weight: 600;
+            color: #cbd5e1;
+            flex-shrink: 0;
+            margin-top: 2px;
         }
 
-        .sb-body::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 99px
+        /* DIVIDER */
+        .sb-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 12px 16px;
         }
 
-        .sb-section {
-            margin-bottom: 20px;
+        /* STATS */
+        .sb-stats {
+            padding: 0 16px 16px;
         }
 
         .sb-sec-title {
@@ -526,6 +636,37 @@
             letter-spacing: .08em;
             color: var(--muted);
             margin-bottom: 10px;
+        }
+
+        /* KPI mini cards */
+        .kpi-mini-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-bottom: 10px;
+        }
+
+        .kpi-mini {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+
+        .kpi-mini-val {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -.03em;
+        }
+
+        .kpi-mini-lbl {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-top: 3px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
         .stat-row {
@@ -571,7 +712,6 @@
             --glow-radius: 300px;
         }
 
-        /* DOT GRID background */
         .chat-wrap::before {
             content: '';
             position: absolute;
@@ -579,7 +719,6 @@
             border-radius: inherit;
             background-image: radial-gradient(circle, rgba(30, 64, 175, 0.18) 1px, transparent 1px);
             background-size: 22px 22px;
-            background-position: 0 0;
             pointer-events: none;
             z-index: 0;
             animation: dotDrift 18s linear infinite;
@@ -602,9 +741,7 @@
             position: absolute;
             inset: 0;
             padding: 2px;
-            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.7)) 0%,
-                    rgba(var(--glow-color), calc(var(--glow-intensity) * 0.3)) 40%, transparent 65%);
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y), rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%, rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
             border-radius: inherit;
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -621,7 +758,7 @@
             z-index: 1;
         }
 
-        /* ════ SHAPEBLUR ORB ════ */
+        /* ORB */
         .welcome-orb {
             width: 120px;
             height: 120px;
@@ -692,7 +829,7 @@
             }
         }
 
-        /* ════ CHAT COMPONENTS ════ */
+        /* CHAT */
         .chat-head {
             padding: 18px 24px 14px;
             border-bottom: 1px solid var(--border);
@@ -1077,10 +1214,10 @@
 
 <body>
 
-    <!-- GLOBAL SPOTLIGHT -->
     <div id="global-spotlight"></div>
+    <div id="gnavParticleLayer"></div>
 
-    <!-- ══════════ HEADER ══════════ -->
+    <!-- HEADER -->
     <header class="hdr">
         <div style="display:flex;align-items:center;gap:26px">
             <div style="display:flex;align-items:center;gap:10px">
@@ -1088,15 +1225,18 @@
                 <span style="font-size:20px;font-weight:800;letter-spacing:-.04em;color:#0f172a">CMAI<span
                         style="color:#3b82f6">.</span></span>
             </div>
-            <!-- GOOEY NAV -->
             <div class="gooey-nav-container" id="gooeyNavContainer">
                 <nav>
                     <ul id="gooeyNavList">
-                        <li data-page="index"><a href="index.html" data-page="index">Dashboard</a></li>
-                        <li data-page="ai_chat_bot"><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a></li>
-                        <li><a href="#">Monitoring</a></li>
-                        <li><a href="#">Hududlar tahlili</a></li>
-                        <li><a href="#">Resurslar</a></li>
+                        <li><span class="gnav-bg"></span><a href="index.html" data-page="index">Dashboard</a></li>
+                        <li><span class="gnav-bg"></span><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="monitoring.html" data-page="monitoring">Monitoring</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="hududlar.html" data-page="hududlar">Hududlar
+                                tahlili</a></li>
+                        <li><span class="gnav-bg"></span><a href="resurslar.html" data-page="resurslar">Resurslar</a>
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -1106,10 +1246,8 @@
                 <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
                 <input type="text" placeholder="Qidiruv...">
             </div>
-            <button class="nb">
-                <i data-lucide="bell" style="width:17px;height:17px"></i>
-                <span class="nd"></span>
-            </button>
+            <button class="nb"><i data-lucide="bell" style="width:17px;height:17px"></i><span
+                    class="nd"></span></button>
             <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
                 <div style="text-align:right">
                     <p style="font-size:11.5px;font-weight:800;color:var(--text)">Admin User</p>
@@ -1124,60 +1262,68 @@
         </div>
     </header>
 
-    <!-- ══ MAIN ══ -->
+    <!-- MAIN -->
     <div class="main">
 
-        <!-- SIDEBAR -->
+        <!-- ════════════════════════════════
+         SIDEBAR — Yangi dizayn
+    ════════════════════════════════ -->
         <div class="sidebar">
-            <div class="sb-head">
-                <div class="sb-title"><span class="dot"></span>Tezkor savollar</div>
-                <div class="sq-list">
-                    <button class="sq" onclick="sendSuggested(this)">&#x1F4CA; Qaysi viloyatda jinoyat eng
-                        ko&#x2019;p?</button>
-                    <button class="sq" onclick="sendSuggested(this)">&#x1F464; Jinoyatchilarning yoshi bo&#x2019;yicha
-                        tahlil</button>
-                    <button class="sq" onclick="sendSuggested(this)">&#x2696;&#xFE0F; 279-modda nima va nechta
-                        holat?</button>
-                    <button class="sq" onclick="sendSuggested(this)">&#x1F504; Qayta sodir etish darajasi
-                        qancha?</button>
-                    <button class="sq" onclick="sendSuggested(this)">&#x1F4BC; Bandlik va jinoyat
-                        bog&#x2019;liqligi</button>
-                    <button class="sq" onclick="sendSuggested(this)">&#x1F4C8; 2023-2025 yil dinamikasi</button>
-                </div>
+
+            <!-- Yangi suhbat tugmasi -->
+            <div class="sb-top">
+                <button class="new-chat-btn" id="newChatBtn">
+                    <i data-lucide="plus" style="width:16px;height:16px"></i>
+                    Yangi suhbat
+                </button>
             </div>
-            <div class="sb-body">
-                <div class="sb-section">
-                    <div class="sb-sec-title">Umumiy statistika</div>
-                    <div class="stat-row"><span class="stat-lbl">Jami hodisalar</span><span class="stat-val"
-                            style="color:#1e40af">461</span></div>
-                    <div class="stat-row"><span class="stat-lbl">Erkaklar ulushi</span><span class="stat-val">85%</span>
-                    </div>
-                    <div class="stat-row"><span class="stat-lbl">Qayta sodir</span><span class="stat-val"
-                            style="color:#ef4444">25%</span></div>
-                    <div class="stat-row"><span class="stat-lbl">Voyaga yetmaganlar</span><span class="stat-val"
-                            style="color:#f97316">8%</span></div>
-                    <div class="stat-row"><span class="stat-lbl">Ishsiz jinoyatchilar</span><span
-                            class="stat-val">45%</span></div>
-                </div>
-                <div class="sb-section">
-                    <div class="sb-sec-title">Top 3 viloyat</div>
-                    <div class="stat-row"><span class="stat-lbl">1. Toshkent shahri</span><span class="stat-val"
-                            style="color:#ef4444">89</span></div>
-                    <div class="stat-row"><span class="stat-lbl">2. Farg&#x2019;ona v-ti</span><span class="stat-val"
-                            style="color:#f97316">74</span></div>
-                    <div class="stat-row"><span class="stat-lbl">3. Samarqand v-ti</span><span class="stat-val"
-                            style="color:#eab308">68</span></div>
-                </div>
-                <div class="sb-section">
-                    <div class="sb-sec-title">Top 3 modda</div>
-                    <div class="stat-row"><span class="stat-lbl">279-modda</span><span class="stat-val">55 ta</span>
-                    </div>
-                    <div class="stat-row"><span class="stat-lbl">171-modda</span><span class="stat-val">48 ta</span>
-                    </div>
-                    <div class="stat-row"><span class="stat-lbl">222-modda</span><span class="stat-val">44 ta</span>
-                    </div>
-                </div>
+
+            <!-- Qidiruv -->
+            <div class="sb-search">
+                <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                <input type="text" id="chatSearch" placeholder="Suhbatlarni qidirish...">
             </div>
+
+            <!-- So'nggi suhbatlar -->
+            <div class="sb-recents">
+                <div class="recents-label">
+                    <span class="dot"></span>
+                    So'nggi suhbatlar
+                </div>
+                <div id="recentChats"></div>
+            </div>
+
+            <div class="sb-divider"></div>
+
+            <!-- Umumiy statistika -->
+            <div class="sb-stats">
+                <div class="sb-sec-title">Umumiy statistika</div>
+
+                <!-- KPI mini -->
+                <div class="kpi-mini-row">
+                    <div class="kpi-mini">
+                        <div class="kpi-mini-val" style="color:var(--primary)" id="kpiTotal">0</div>
+                        <div class="kpi-mini-lbl">Jami so'rov</div>
+                    </div>
+                    <div class="kpi-mini">
+                        <div class="kpi-mini-val" style="color:#22c55e" id="kpiToday">0</div>
+                        <div class="kpi-mini-lbl">Bugun</div>
+                    </div>
+                </div>
+
+                <!-- Ma'lumotlar -->
+                <div class="stat-row"><span class="stat-lbl">Jami hodisalar</span><span class="stat-val"
+                        style="color:#1e40af">461</span></div>
+                <div class="stat-row"><span class="stat-lbl">Erkaklar ulushi</span><span class="stat-val">85%</span>
+                </div>
+                <div class="stat-row"><span class="stat-lbl">Qayta sodir</span><span class="stat-val"
+                        style="color:#ef4444">25%</span></div>
+                <div class="stat-row"><span class="stat-lbl">Voyaga yetmaganlar</span><span class="stat-val"
+                        style="color:#f97316">8%</span></div>
+                <div class="stat-row"><span class="stat-lbl">Ishsiz jinoyatchilar</span><span
+                        class="stat-val">45%</span></div>
+            </div>
+
         </div>
 
         <!-- CHAT -->
@@ -1187,7 +1333,7 @@
                     <div class="ai-avatar"><i data-lucide="bot" style="width:20px;height:20px;color:white"></i></div>
                     <div>
                         <div class="ai-name">CMAI Assistant</div>
-                        <div class="ai-desc">Jinoyatchilik statistikasi bo&#x2019;yicha AI tahlilchi</div>
+                        <div class="ai-desc" id="chatTitle">Jinoyatchilik statistikasi bo'yicha AI tahlilchi</div>
                     </div>
                 </div>
                 <button class="clear-btn" onclick="clearChat()">
@@ -1201,13 +1347,12 @@
                         <span class="orb-label">AI</span>
                     </div>
                     <h2>CMAI AI Assistentiga xush kelibsiz</h2>
-                    <p>O&#x2019;zbekiston jinoyatchilik statistikasi, viloyatlar, moddalar va demografik
-                        ko&#x2019;rsatkichlar bo&#x2019;yicha savollaringizga javob beraman.</p>
+                    <p>O'zbekiston jinoyatchilik statistikasi, viloyatlar, moddalar va demografik ko'rsatkichlar
+                        bo'yicha savollaringizga javob beraman.</p>
                     <div class="welcome-chips">
                         <button class="chip" onclick="sendSuggested(this)">Eng xavfli viloyat qaysi?</button>
-                        <button class="chip" onclick="sendSuggested(this)">Alkogol va jinoyat
-                            bog&#x2019;liqligi</button>
-                        <button class="chip" onclick="sendSuggested(this)">Ta&#x2019;lim darajasi tahlili</button>
+                        <button class="chip" onclick="sendSuggested(this)">Alkogol va jinoyat bog'liqligi</button>
+                        <button class="chip" onclick="sendSuggested(this)">Ta'lim darajasi tahlili</button>
                         <button class="chip" onclick="sendSuggested(this)">279-modda nima?</button>
                     </div>
                 </div>
@@ -1224,7 +1369,7 @@
             </div>
         </div>
 
-    </div><!-- /main -->
+    </div>
 
     <script>
         lucide.createIcons();
@@ -1232,290 +1377,180 @@
         /* ── SCROLL HEADER ── */
         (function () {
             const hdr = document.querySelector('.hdr');
-            const obs = new IntersectionObserver(([e]) => {
-                hdr.classList.toggle('scrolled', e.intersectionRatio < 1);
-            }, { threshold: [1], rootMargin: '-1px 0px 0px 0px' });
+            const obs = new IntersectionObserver(([e]) => { hdr.classList.toggle('scrolled', e.intersectionRatio < 1); }, { threshold: [1], rootMargin: '-1px 0px 0px 0px' });
             obs.observe(hdr);
         })();
 
-        /* ════════════════════════════════════════════
-           GLOBAL ANIMATION SYSTEM
-           1. Global Spotlight
-           2. Border Glow on all panels + sc cards
-           3. Particle trail
-           4. Click Ripple
-        ════════════════════════════════════════════ */
+        /* ── GLOBAL FX ── */
         (function () {
-            const GLOW_COLOR = '30, 64, 175';
             const spotlight = document.getElementById('global-spotlight');
-
-            /* -- smooth mouse tracking -- */
-            let mouseX = -1000, mouseY = -1000;
-            let currentX = -1000, currentY = -1000;
-            let rafId = null;
-
+            let mouseX = -1000, mouseY = -1000, currentX = -1000, currentY = -1000;
             function lerp(a, b, t) { return a + (b - a) * t; }
-
-            function animateSpotlight() {
-                currentX = lerp(currentX, mouseX, 0.1);
-                currentY = lerp(currentY, mouseY, 0.1);
-                spotlight.style.left = currentX + 'px';
-                spotlight.style.top = currentY + 'px';
-                rafId = requestAnimationFrame(animateSpotlight);
-            }
+            function animateSpotlight() { currentX = lerp(currentX, mouseX, 0.1); currentY = lerp(currentY, mouseY, 0.1); spotlight.style.left = currentX + 'px'; spotlight.style.top = currentY + 'px'; requestAnimationFrame(animateSpotlight); }
             animateSpotlight();
-
-            /* ── 1. SPOTLIGHT + BORDER GLOW ── */
-            const glowTargets = () => [
-                ...document.querySelectorAll('.panel'),
-                ...document.querySelectorAll('.sc'),
-                document.querySelector('.hdr')
-            ].filter(Boolean);
-
+            const glowTargets = () => [...document.querySelectorAll('.panel'), ...document.querySelectorAll('.sc'), document.querySelector('.hdr'), document.querySelector('.sidebar'), document.querySelector('.chat-wrap')].filter(Boolean);
             document.addEventListener('mousemove', function (e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-
-                /* spotlight visibility */
-                spotlight.style.opacity = '1';
-
-                /* border glow on each element */
+                mouseX = e.clientX; mouseY = e.clientY; spotlight.style.opacity = '1';
                 glowTargets().forEach(el => {
                     const rect = el.getBoundingClientRect();
                     const relX = ((e.clientX - rect.left) / rect.width) * 100;
                     const relY = ((e.clientY - rect.top) / rect.height) * 100;
-
-                    /* distance from element center */
-                    const cx = rect.left + rect.width / 2;
-                    const cy = rect.top + rect.height / 2;
+                    const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
                     const dist = Math.hypot(e.clientX - cx, e.clientY - cy);
                     const maxR = Math.hypot(rect.width, rect.height) / 2;
                     const proximity = Math.max(0, 1 - (dist - maxR * 0.3) / (maxR * 1.2));
                     const intensity = Math.min(1, proximity * 1.4);
-
-                    el.style.setProperty('--glow-x', relX + '%');
-                    el.style.setProperty('--glow-y', relY + '%');
-                    el.style.setProperty('--glow-intensity', intensity.toFixed(3));
+                    el.style.setProperty('--glow-x', relX + '%'); el.style.setProperty('--glow-y', relY + '%'); el.style.setProperty('--glow-intensity', intensity.toFixed(3));
                 });
             });
+            document.addEventListener('mouseleave', function () { spotlight.style.opacity = '0'; glowTargets().forEach(el => el.style.setProperty('--glow-intensity', '0')); });
 
-            document.addEventListener('mouseleave', function () {
-                spotlight.style.opacity = '0';
-                glowTargets().forEach(el => el.style.setProperty('--glow-intensity', '0'));
-            });
-
-            /* ── 2. PARTICLE TRAIL ── */
-            const PARTICLE_POOL_SIZE = 18;
-            const particles = [];
-            let particleIndex = 0;
-            let lastParticleTime = 0;
-            const PARTICLE_INTERVAL = 45; // ms between spawns
-
-            /* pre-create pool */
-            for (let i = 0; i < PARTICLE_POOL_SIZE; i++) {
-                const p = document.createElement('div');
-                p.className = 'cmai-particle';
-                document.body.appendChild(p);
-                particles.push({ el: p, active: false });
-            }
-
+            /* particles */
+            const POOL = 18, particles = []; let pidx = 0, lastP = 0;
+            for (let i = 0; i < POOL; i++) { const p = document.createElement('div'); p.className = 'cmai-particle'; document.body.appendChild(p); particles.push({ el: p }); }
             function spawnParticle(x, y) {
-                const slot = particles[particleIndex % PARTICLE_POOL_SIZE];
-                particleIndex++;
-
-                const offsetX = (Math.random() - 0.5) * 20;
-                const offsetY = (Math.random() - 0.5) * 20;
-                const size = 2 + Math.random() * 4;
-
-                slot.el.style.cssText = `
-                    position: fixed;
-                    width: ${size}px;
-                    height: ${size}px;
-                    border-radius: 50%;
-                    background: rgba(30, 64, 175, ${0.6 + Math.random() * 0.4});
-                    box-shadow: 0 0 ${size * 2}px rgba(30,64,175,0.7), 0 0 ${size * 4}px rgba(59,130,246,0.3);
-                    pointer-events: none;
-                    z-index: 9998;
-                    left: ${x + offsetX}px;
-                    top:  ${y + offsetY}px;
-                    transform: translate(-50%,-50%) scale(1);
-                    opacity: 0.9;
-                    transition: none;
-                `;
-
-                /* animate out */
-                requestAnimationFrame(() => {
-                    slot.el.style.transition = 'transform 0.7s ease-out, opacity 0.7s ease-out';
-                    slot.el.style.transform = `translate(-50%,-50%) scale(0) translateY(-${10 + Math.random() * 15}px)`;
-                    slot.el.style.opacity = '0';
-                });
+                const slot = particles[pidx % POOL]; pidx++;
+                const ox = (Math.random() - .5) * 20, oy = (Math.random() - .5) * 20, sz = 2 + Math.random() * 4;
+                slot.el.style.cssText = `position:fixed;width:${sz}px;height:${sz}px;border-radius:50%;background:rgba(30,64,175,${0.6 + Math.random() * 0.4});box-shadow:0 0 ${sz * 2}px rgba(30,64,175,0.7);pointer-events:none;z-index:9998;left:${x + ox}px;top:${y + oy}px;transform:translate(-50%,-50%) scale(1);opacity:0.9;transition:none;`;
+                requestAnimationFrame(() => { slot.el.style.transition = 'transform 0.7s ease-out,opacity 0.7s ease-out'; slot.el.style.transform = `translate(-50%,-50%) scale(0) translateY(-${10 + Math.random() * 15}px)`; slot.el.style.opacity = '0'; });
             }
+            document.addEventListener('mousemove', function (e) { const now = Date.now(); if (now - lastP > 45) { lastP = now; spawnParticle(e.clientX, e.clientY); } });
 
-            document.addEventListener('mousemove', function (e) {
-                const now = Date.now();
-                if (now - lastParticleTime > PARTICLE_INTERVAL) {
-                    lastParticleTime = now;
-                    spawnParticle(e.clientX, e.clientY);
-                }
-            });
-
-            /* ── 3. CLICK RIPPLE ── */
+            /* ripple */
             document.addEventListener('click', function (e) {
-                /* skip clicks on interactive elements */
-                if (e.target.closest('button, a, input, select, canvas')) return;
-
-                const sizes = [50, 90, 140];
-                const delays = [0, 120, 240];
-
-                sizes.forEach((sz, i) => {
-                    const r = document.createElement('div');
-                    r.className = 'cmai-ripple';
-                    r.style.cssText = `
-                        position: fixed;
-                        left: ${e.clientX}px;
-                        top:  ${e.clientY}px;
-                        width:  ${sz}px;
-                        height: ${sz}px;
-                        border-radius: 50%;
-                        pointer-events: none;
-                        z-index: 9997;
-                        transform: translate(-50%,-50%) scale(0);
-                        border: 1.5px solid rgba(30,64,175,${0.5 - i * 0.12});
-                        background: radial-gradient(circle, rgba(30,64,175,${0.1 - i * 0.02}) 0%, transparent 70%);
-                        animation: rippleOut 0.8s cubic-bezier(0.2,0,0.6,1) ${delays[i]}ms forwards;
-                    `;
-                    document.body.appendChild(r);
-                    setTimeout(() => r.remove(), 1200);
+                if (e.target.closest('button,a,input,select,canvas,textarea')) return;
+                [50, 90, 140].forEach((sz, i) => {
+                    const r = document.createElement('div'); r.className = 'cmai-ripple';
+                    r.style.cssText = `position:fixed;left:${e.clientX}px;top:${e.clientY}px;width:${sz}px;height:${sz}px;border-radius:50%;pointer-events:none;z-index:9997;transform:translate(-50%,-50%) scale(0);border:1.5px solid rgba(30,64,175,${0.5 - i * 0.12});background:radial-gradient(circle,rgba(30,64,175,${0.1 - i * 0.02}) 0%,transparent 70%);animation:rippleOut 0.8s cubic-bezier(0.2,0,0.6,1) ${i * 120}ms forwards;`;
+                    document.body.appendChild(r); setTimeout(() => r.remove(), 1200);
                 });
             });
-
         })();
 
-        /* ── ACTIVE NAV ── */
+        /* ── GOOEY NAV ── */
         (function () {
-            const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
-            document.querySelectorAll('.gooey-nav-container nav a[data-page]').forEach(a => {
-                if (a.dataset.page === page) a.classList.add('act');
-                else a.classList.remove('act');
-            });
-            document.querySelectorAll('.gooey-nav-container nav a').forEach(a => {
-                a.addEventListener('click', function () {
-                    document.querySelectorAll('.gooey-nav-container nav a').forEach(b => b.classList.remove('act'));
-                    this.classList.add('act');
-                });
-            });
-        })();
-
-        /* ════ SHAPEBLUR ORB ════ */
-        (function initOrb() {
-            var canvas = document.getElementById('shapeblur-canvas');
-            if (!canvas) return;
-            var gl = canvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false });
-            if (!gl) return;
-
-            var vert = [
-                '#version 300 es',
-                'in vec2 position;',
-                'void main(){ gl_Position=vec4(position,0.0,1.0); }'
-            ].join('\n');
-
-            var frag = [
-                '#version 300 es',
-                'precision highp float;',
-                'uniform vec2 u_mouse, u_resolution;',
-                'uniform float u_pixelRatio, u_shapeSize, u_roundness, u_borderSize, u_circleSize, u_circleEdge;',
-                'out vec4 fragColor;',
-                'vec2 coord(in vec2 p){',
-                '  p=p/u_resolution.xy;',
-                '  if(u_resolution.x>u_resolution.y){p.x*=u_resolution.x/u_resolution.y;p.x+=(u_resolution.y-u_resolution.x)/u_resolution.y/2.0;}',
-                '  else{p.y*=u_resolution.y/u_resolution.x;p.y+=(u_resolution.x-u_resolution.y)/u_resolution.x/2.0;}',
-                '  p-=0.5;p*=vec2(-1.0,1.0);return p;',
-                '}',
-                'float sdRoundRect(vec2 p,vec2 b,float r){vec2 d=abs(p-0.5)*4.2-b+vec2(r);return min(max(d.x,d.y),0.0)+length(max(d,0.0))-r;}',
-                'float sdCircle(in vec2 st,in vec2 c){return length(st-c)*2.0;}',
-                'float fill(float x,float s,float e){return 1.0-smoothstep(s-e,s+e,x);}',
-                'float strokeAA(float x,float s,float w,float e){float afw=length(vec2(dFdx(x),dFdy(x)))*0.70710678;return clamp(smoothstep(s-e-afw,s+e+afw,x+w*0.5)-smoothstep(s-e-afw,s+e+afw,x-w*0.5),0.0,1.0);}',
-                'void main(){',
-                '  vec2 st=coord(gl_FragCoord.xy)+0.5;',
-                '  vec2 pm=coord(u_mouse*u_pixelRatio)*vec2(1.,-1.)+0.5;',
-                '  float circ=fill(sdCircle(st,pm),u_circleSize,u_circleEdge);',
-                '  float sdf=sdRoundRect(st,vec2(u_shapeSize),u_roundness);',
-                '  float shape=strokeAA(sdf,0.0,u_borderSize,circ)*4.0;',
-                '  vec3 c1=vec3(0.118,0.251,0.686);',
-                '  vec3 c2=vec3(0.231,0.510,0.965);',
-                '  vec3 c3=vec3(0.024,0.553,0.824);',
-                '  vec3 col=mix(c1,mix(c2,c3,st.y),circ*0.8+st.x*0.4+st.y*0.2);',
-                '  fragColor=vec4(col,shape*0.72);',
-                '}'
-            ].join('\n');
-
-            function mkShader(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
-            var prog = gl.createProgram();
-            gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert));
-            gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag));
-            gl.linkProgram(prog);
-            if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-            gl.useProgram(prog);
-
-            var buf = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-            var pl = gl.getAttribLocation(prog, 'position');
-            gl.enableVertexAttribArray(pl);
-            gl.vertexAttribPointer(pl, 2, gl.FLOAT, false, 0, 0);
-
-            var U = {};
-            ['u_mouse', 'u_resolution', 'u_pixelRatio', 'u_shapeSize', 'u_roundness', 'u_borderSize', 'u_circleSize', 'u_circleEdge']
-                .forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
-            gl.uniform1f(U.u_shapeSize, 1.1);
-            gl.uniform1f(U.u_roundness, 0.5);
-            gl.uniform1f(U.u_borderSize, 0.055);
-            gl.uniform1f(U.u_circleSize, 0.28);
-            gl.uniform1f(U.u_circleEdge, 0.55);
-            gl.enable(gl.BLEND);
-            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-            var mx = 60, my = 60, dx = 60, dy = 60, hover = false;
-            document.addEventListener('mousemove', function (e) {
-                var r = canvas.getBoundingClientRect(), pad = 80;
-                var rx = e.clientX - r.left, ry = e.clientY - r.top;
-                if (rx >= -pad && rx <= r.width + pad && ry >= -pad && ry <= r.height + pad) {
-                    mx = rx; my = ry; hover = true;
-                } else { hover = false; }
-            });
-
-            function resize() {
-                var dpr = Math.min(window.devicePixelRatio || 1, 2);
-                var w = canvas.parentElement.clientWidth || 120;
-                var h = canvas.parentElement.clientHeight || 120;
-                canvas.width = Math.floor(w * dpr);
-                canvas.height = Math.floor(h * dpr);
-                gl.viewport(0, 0, canvas.width, canvas.height);
-                gl.uniform2f(U.u_resolution, canvas.width, canvas.height);
-                gl.uniform1f(U.u_pixelRatio, dpr);
+            const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
+            const particleLayer = document.getElementById('gnavParticleLayer');
+            let activeIndex = -1;
+            const GC = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'];
+            function spawnParticles(li) {
+                const rect = li.getBoundingClientRect(), cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+                for (let i = 0; i < 18; i++) {
+                    const a = (360 / 18) * i + (Math.random() - .5) * 20, rad = a * Math.PI / 180, dist = 55 * (0.7 + Math.random() * 0.7);
+                    const tx = Math.cos(rad) * dist, ty = Math.sin(rad) * dist, sz = 4 + Math.random() * 5, dur = 0.55 + Math.random() * 0.45, delay = Math.random() * 80;
+                    const color = GC[Math.floor(Math.random() * GC.length)];
+                    const dot = document.createElement('div'); dot.className = 'gnav-dot';
+                    dot.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;background:${color};box-shadow:0 0 ${sz * 1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`;
+                    particleLayer.appendChild(dot); setTimeout(() => dot.remove(), (dur + delay / 1000 + 0.1) * 1000);
+                }
             }
-            window.addEventListener('resize', resize);
-            new ResizeObserver(resize).observe(canvas.parentElement);
-            resize();
-
-            var t0 = performance.now();
-            (function loop() {
-                var t = (performance.now() - t0) * 0.001;
-                var cw = canvas.parentElement.clientWidth || 120;
-                var ch = canvas.parentElement.clientHeight || 120;
-                var idleX = cw / 2 + Math.cos(t * 0.9) * cw * 0.28;
-                var idleY = ch / 2 + Math.sin(t * 1.1) * ch * 0.28;
-                dx += ((hover ? mx : idleX) - dx) * 0.07;
-                dy += ((hover ? my : idleY) - dy) * 0.07;
-                gl.uniform2f(U.u_mouse, dx, dy);
-                gl.clearColor(0, 0, 0, 0);
-                gl.clear(gl.COLOR_BUFFER_BIT);
-                gl.drawArrays(gl.TRIANGLES, 0, 3);
-                requestAnimationFrame(loop);
-            })();
+            function activateItem(i) { if (activeIndex === i) return; if (activeIndex >= 0) listItems[activeIndex].classList.remove('active'); activeIndex = i; listItems[i].classList.add('active'); spawnParticles(listItems[i]); }
+            listItems.forEach((li, i) => li.addEventListener('click', () => activateItem(i)));
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
+                let found = 0; listItems.forEach((li, i) => { const a = li.querySelector('a[data-page]'); if (a && a.dataset.page === page) found = i; });
+                activeIndex = found; listItems[found].classList.add('active');
+            }));
+            setTimeout(() => lucide.createIcons(), 200);
         })();
 
-        /* ════ CHAT LOGIC ════ */
+        /* ── ORB ── */
+        (function initOrb() {
+            var canvas = document.getElementById('shapeblur-canvas'); if (!canvas) return;
+            var gl = canvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false }); if (!gl) return;
+            var vert = ['#version 300 es', 'in vec2 position;', 'void main(){ gl_Position=vec4(position,0.0,1.0); }'].join('\n');
+            var frag = ['#version 300 es', 'precision highp float;', 'uniform vec2 u_mouse,u_resolution;', 'uniform float u_pixelRatio,u_shapeSize,u_roundness,u_borderSize,u_circleSize,u_circleEdge;', 'out vec4 fragColor;', 'vec2 coord(in vec2 p){p=p/u_resolution.xy;if(u_resolution.x>u_resolution.y){p.x*=u_resolution.x/u_resolution.y;p.x+=(u_resolution.y-u_resolution.x)/u_resolution.y/2.0;}else{p.y*=u_resolution.y/u_resolution.x;p.y+=(u_resolution.x-u_resolution.y)/u_resolution.x/2.0;}p-=0.5;p*=vec2(-1.0,1.0);return p;}', 'float sdRoundRect(vec2 p,vec2 b,float r){vec2 d=abs(p-0.5)*4.2-b+vec2(r);return min(max(d.x,d.y),0.0)+length(max(d,0.0))-r;}', 'float sdCircle(in vec2 st,in vec2 c){return length(st-c)*2.0;}', 'float fill(float x,float s,float e){return 1.0-smoothstep(s-e,s+e,x);}', 'float strokeAA(float x,float s,float w,float e){float afw=length(vec2(dFdx(x),dFdy(x)))*0.70710678;return clamp(smoothstep(s-e-afw,s+e+afw,x+w*0.5)-smoothstep(s-e-afw,s+e+afw,x-w*0.5),0.0,1.0);}', 'void main(){vec2 st=coord(gl_FragCoord.xy)+0.5;vec2 pm=coord(u_mouse*u_pixelRatio)*vec2(1.,-1.)+0.5;float circ=fill(sdCircle(st,pm),u_circleSize,u_circleEdge);float sdf=sdRoundRect(st,vec2(u_shapeSize),u_roundness);float shape=strokeAA(sdf,0.0,u_borderSize,circ)*4.0;vec3 c1=vec3(0.118,0.251,0.686);vec3 c2=vec3(0.231,0.510,0.965);vec3 c3=vec3(0.024,0.553,0.824);vec3 col=mix(c1,mix(c2,c3,st.y),circ*0.8+st.x*0.4+st.y*0.2);fragColor=vec4(col,shape*0.72);}'].join('\n');
+            function mkShader(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+            var prog = gl.createProgram(); gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert)); gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag)); gl.linkProgram(prog); if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return; gl.useProgram(prog);
+            var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+            var pl = gl.getAttribLocation(prog, 'position'); gl.enableVertexAttribArray(pl); gl.vertexAttribPointer(pl, 2, gl.FLOAT, false, 0, 0);
+            var U = {};['u_mouse', 'u_resolution', 'u_pixelRatio', 'u_shapeSize', 'u_roundness', 'u_borderSize', 'u_circleSize', 'u_circleEdge'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+            gl.uniform1f(U.u_shapeSize, 1.1); gl.uniform1f(U.u_roundness, 0.5); gl.uniform1f(U.u_borderSize, 0.055); gl.uniform1f(U.u_circleSize, 0.28); gl.uniform1f(U.u_circleEdge, 0.55);
+            gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            var mx = 60, my = 60, dx = 60, dy = 60, hover = false;
+            document.addEventListener('mousemove', function (e) { var r = canvas.getBoundingClientRect(), pad = 80, rx = e.clientX - r.left, ry = e.clientY - r.top; if (rx >= -pad && rx <= r.width + pad && ry >= -pad && ry <= r.height + pad) { mx = rx; my = ry; hover = true; } else { hover = false; } });
+            function resize() { var dpr = Math.min(window.devicePixelRatio || 1, 2); var w = canvas.parentElement.clientWidth || 120; var h = canvas.parentElement.clientHeight || 120; canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr); gl.viewport(0, 0, canvas.width, canvas.height); gl.uniform2f(U.u_resolution, canvas.width, canvas.height); gl.uniform1f(U.u_pixelRatio, dpr); }
+            window.addEventListener('resize', resize); new ResizeObserver(resize).observe(canvas.parentElement); resize();
+            var t0 = performance.now();
+            (function loop() { var t = (performance.now() - t0) * 0.001; var cw = canvas.parentElement.clientWidth || 120; var ch = canvas.parentElement.clientHeight || 120; var idleX = cw / 2 + Math.cos(t * 0.9) * cw * 0.28; var idleY = ch / 2 + Math.sin(t * 1.1) * ch * 0.28; dx += ((hover ? mx : idleX) - dx) * 0.07; dy += ((hover ? my : idleY) - dy) * 0.07; gl.uniform2f(U.u_mouse, dx, dy); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(loop); })();
+        })();
+
+        /* ══════════════════════════════════════
+           SIDEBAR LOGIC
+        ══════════════════════════════════════ */
+        const CHAT_ICONS = [
+            { icon: 'map-pin', bg: '#eff6ff', color: '#2563eb' },
+            { icon: 'bar-chart-2', bg: '#fef3c7', color: '#d97706' },
+            { icon: 'users', bg: '#f3e8ff', color: '#7c3aed' },
+            { icon: 'scale', bg: '#dcfce7', color: '#16a34a' },
+            { icon: 'alert-triangle', bg: '#fee2e2', color: '#dc2626' },
+        ];
+
+        // Mock recent chats
+        let allChats = [
+            { id: 1, title: "Toshkentda eng ko'p qaysi modda?", time: '09:41', date: 'Bugun', msgs: 6, active: true },
+            { id: 2, title: "2023-2025 yil dinamikasi tahlili", time: '08:15', date: 'Bugun', msgs: 12, active: false },
+            { id: 3, title: "Qayta sodir etish sabablari", time: 'Kecha', date: 'Kecha', msgs: 8, active: false },
+            { id: 4, title: "Farg'ona viloyati jinoyat profili", time: 'Kecha', date: 'Kecha', msgs: 5, active: false },
+            { id: 5, title: "Voyaga yetmaganlar jinoyati", time: '2 kun', date: '2 kun oldin', msgs: 9, active: false },
+            { id: 6, title: "Bandlik va jinoyat bog'liqligi", time: '3 kun', date: '3 kun oldin', msgs: 14, active: false },
+            { id: 7, title: "279-modda bo'yicha to'liq tahlil", time: '4 kun', date: '4 kun oldin', msgs: 7, active: false },
+        ];
+        let totalQueries = 43;
+        let todayQueries = 7;
+
+        function renderChats(filtered) {
+            const list = filtered || allChats;
+            const el = document.getElementById('recentChats');
+            if (!list.length) {
+                el.innerHTML = '<div style="text-align:center;padding:20px 0;font-size:11px;font-weight:600;color:var(--muted);">Hech narsa topilmadi</div>';
+                return;
+            }
+            el.innerHTML = list.map((c) => {
+                return `<div class="chat-item ${c.active ? 'active-chat' : ''}" onclick="selectChat(${c.id})">
+            <div class="chat-item-dot"></div>
+            <div class="chat-item-body">
+                <div class="chat-item-title">${c.title}</div>
+                <div class="chat-item-meta">${c.msgs} xabar · ${c.date}</div>
+            </div>
+            <span class="chat-item-time">${c.time}</span>
+        </div>`;
+            }).join('');
+        }
+
+        window.selectChat = function (id) {
+            allChats.forEach(c => c.active = c.id === id);
+            renderChats();
+            const chat = allChats.find(c => c.id === id);
+            if (chat) {
+                document.getElementById('chatTitle').textContent = chat.title;
+            }
+        };
+
+        // Search
+        document.getElementById('chatSearch').addEventListener('input', function () {
+            const q = this.value.toLowerCase().trim();
+            if (!q) { renderChats(); return; }
+            renderChats(allChats.filter(c => c.title.toLowerCase().includes(q)));
+        });
+
+        // New chat button
+        document.getElementById('newChatBtn').addEventListener('click', function () {
+            clearChat();
+            allChats.forEach(c => c.active = false);
+            renderChats();
+            document.getElementById('chatTitle').textContent = "Jinoyatchilik statistikasi bo'yicha AI tahlilchi";
+        });
+
+        // KPI counters
+        document.getElementById('kpiTotal').textContent = totalQueries;
+        document.getElementById('kpiToday').textContent = todayQueries;
+
+        renderChats();
+
+        /* ══════════════════════════════════════
+           CHAT LOGIC
+        ══════════════════════════════════════ */
         const SYSTEM = `Siz CMAI tizimining AI assistentidasiz. O'zbekiston jinoyatchilik statistikasi tahlilchisisiz.
 2024-yil ma'lumotlari: Jami:461, Erkak:391(85%), Ayol:70(15%), Voyaga yetgan:424(92%), Yetmagan:37(8%), Qayta:115(25%), Birinchi:346(75%), Oliy:92(20%), O'rta:369(80%).
 Bandlik: Ishsiz 207(45%), Ishli 184(40%), Talaba 46(10%), Pensioner 23(5%).
@@ -1531,10 +1566,7 @@ Har doim o'zbek tilida, aniq raqamlar bilan, professional tonda javob bering.`;
         ta.addEventListener('input', function () { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
         ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
 
-        function sendSuggested(btn) {
-            document.getElementById('userInput').value = btn.textContent.trim();
-            sendMessage();
-        }
+        window.sendSuggested = function (btn) { document.getElementById('userInput').value = btn.textContent.trim(); sendMessage(); };
 
         async function sendMessage() {
             const inp = document.getElementById('userInput');
@@ -1546,6 +1578,24 @@ Har doim o'zbek tilida, aniq raqamlar bilan, professional tonda javob bering.`;
             inp.value = ''; inp.style.height = 'auto';
             const tid = showTyping(); loading = true;
             document.getElementById('sendBtn').disabled = true;
+
+            // Update KPI
+            totalQueries++; todayQueries++;
+            document.getElementById('kpiTotal').textContent = totalQueries;
+            document.getElementById('kpiToday').textContent = todayQueries;
+
+            // Add to recent chats if new
+            const shortTitle = text.length > 36 ? text.slice(0, 36) + '...' : text;
+            const existsActive = allChats.find(c => c.active);
+            if (!existsActive) {
+                const newChat = { id: Date.now(), title: shortTitle, time: 'Hozir', date: 'Bugun', msgs: 1, active: true };
+                allChats.forEach(c => c.active = false);
+                allChats.unshift(newChat);
+                if (allChats.length > 10) allChats.pop();
+                renderChats();
+                document.getElementById('chatTitle').textContent = shortTitle;
+            }
+
             try {
                 const res = await fetch('https://api.anthropic.com/v1/messages', {
                     method: 'POST',
@@ -1559,7 +1609,7 @@ Har doim o'zbek tilida, aniq raqamlar bilan, professional tonda javob bering.`;
                 history.push({ role: 'assistant', content: reply });
             } catch (e) {
                 removeTyping(tid);
-                addMsg('ai', '&#x26A0; Ulanishda xatolik yuz berdi.');
+                addMsg('ai', '⚠ Ulanishda xatolik yuz berdi.');
             }
             loading = false;
             document.getElementById('sendBtn').disabled = false;
@@ -1598,25 +1648,45 @@ Har doim o'zbek tilida, aniq raqamlar bilan, professional tonda javob bering.`;
             d.innerHTML = '<div class="msg-avatar ai-av"><i data-lucide="bot" style="width:16px;height:16px"></i></div><div class="msg-content"><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
             c.appendChild(d); c.scrollTop = c.scrollHeight; lucide.createIcons(); return id;
         }
-
         function removeTyping(id) { var e = document.getElementById(id); if (e) e.remove(); }
 
-        function clearChat() {
+        window.clearChat = function () {
             history = [];
-            var welcomeHTML = '<div class="welcome" id="welcome">'
-                + '<div class="welcome-orb"><canvas id="shapeblur-canvas"></canvas><span class="orb-label">AI</span></div>'
-                + '<h2>CMAI AI Assistentiga xush kelibsiz</h2>'
-                + '<p>O&#x2019;zbekiston jinoyatchilik statistikasi bo&#x2019;yicha savollaringizga javob beraman.</p>'
-                + '<div class="welcome-chips">'
-                + '<button class="chip" onclick="sendSuggested(this)">Eng xavfli viloyat qaysi?</button>'
-                + '<button class="chip" onclick="sendSuggested(this)">Alkogol va jinoyat bog&#x2019;liqligi</button>'
-                + '<button class="chip" onclick="sendSuggested(this)">Ta&#x2019;lim darajasi tahlili</button>'
-                + '<button class="chip" onclick="sendSuggested(this)">279-modda nima?</button>'
-                + '</div></div>';
-            document.getElementById('messages').innerHTML = welcomeHTML;
+            document.getElementById('messages').innerHTML = `
+        <div class="welcome" id="welcome">
+            <div class="welcome-orb"><canvas id="shapeblur-canvas"></canvas><span class="orb-label">AI</span></div>
+            <h2>CMAI AI Assistentiga xush kelibsiz</h2>
+            <p>O'zbekiston jinoyatchilik statistikasi bo'yicha savollaringizga javob beraman.</p>
+            <div class="welcome-chips">
+                <button class="chip" onclick="sendSuggested(this)">Eng xavfli viloyat qaysi?</button>
+                <button class="chip" onclick="sendSuggested(this)">Alkogol va jinoyat bog'liqligi</button>
+                <button class="chip" onclick="sendSuggested(this)">Ta'lim darajasi tahlili</button>
+                <button class="chip" onclick="sendSuggested(this)">279-modda nima?</button>
+            </div>
+        </div>`;
             lucide.createIcons();
-            requestAnimationFrame(function () { initOrb(); });
-        }
+            requestAnimationFrame(function () {
+                (function initOrb() {
+                    var canvas = document.getElementById('shapeblur-canvas'); if (!canvas) return;
+                    var gl = canvas.getContext('webgl2', { alpha: true, antialias: true, premultipliedAlpha: false }); if (!gl) return;
+                    var vert = ['#version 300 es', 'in vec2 position;', 'void main(){ gl_Position=vec4(position,0.0,1.0); }'].join('\n');
+                    var frag = ['#version 300 es', 'precision highp float;', 'uniform vec2 u_mouse,u_resolution;', 'uniform float u_pixelRatio,u_shapeSize,u_roundness,u_borderSize,u_circleSize,u_circleEdge;', 'out vec4 fragColor;', 'vec2 coord(in vec2 p){p=p/u_resolution.xy;if(u_resolution.x>u_resolution.y){p.x*=u_resolution.x/u_resolution.y;p.x+=(u_resolution.y-u_resolution.x)/u_resolution.y/2.0;}else{p.y*=u_resolution.y/u_resolution.x;p.y+=(u_resolution.x-u_resolution.y)/u_resolution.x/2.0;}p-=0.5;p*=vec2(-1.0,1.0);return p;}', 'float sdRoundRect(vec2 p,vec2 b,float r){vec2 d=abs(p-0.5)*4.2-b+vec2(r);return min(max(d.x,d.y),0.0)+length(max(d,0.0))-r;}', 'float sdCircle(in vec2 st,in vec2 c){return length(st-c)*2.0;}', 'float fill(float x,float s,float e){return 1.0-smoothstep(s-e,s+e,x);}', 'float strokeAA(float x,float s,float w,float e){float afw=length(vec2(dFdx(x),dFdy(x)))*0.70710678;return clamp(smoothstep(s-e-afw,s+e+afw,x+w*0.5)-smoothstep(s-e-afw,s+e+afw,x-w*0.5),0.0,1.0);}', 'void main(){vec2 st=coord(gl_FragCoord.xy)+0.5;vec2 pm=coord(u_mouse*u_pixelRatio)*vec2(1.,-1.)+0.5;float circ=fill(sdCircle(st,pm),u_circleSize,u_circleEdge);float sdf=sdRoundRect(st,vec2(u_shapeSize),u_roundness);float shape=strokeAA(sdf,0.0,u_borderSize,circ)*4.0;vec3 c1=vec3(0.118,0.251,0.686);vec3 c2=vec3(0.231,0.510,0.965);vec3 c3=vec3(0.024,0.553,0.824);vec3 col=mix(c1,mix(c2,c3,st.y),circ*0.8+st.x*0.4+st.y*0.2);fragColor=vec4(col,shape*0.72);}'].join('\n');
+                    function mkShader(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+                    var prog = gl.createProgram(); gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, vert)); gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, frag)); gl.linkProgram(prog); if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return; gl.useProgram(prog);
+                    var buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+                    var pl = gl.getAttribLocation(prog, 'position'); gl.enableVertexAttribArray(pl); gl.vertexAttribPointer(pl, 2, gl.FLOAT, false, 0, 0);
+                    var U = {};['u_mouse', 'u_resolution', 'u_pixelRatio', 'u_shapeSize', 'u_roundness', 'u_borderSize', 'u_circleSize', 'u_circleEdge'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+                    gl.uniform1f(U.u_shapeSize, 1.1); gl.uniform1f(U.u_roundness, 0.5); gl.uniform1f(U.u_borderSize, 0.055); gl.uniform1f(U.u_circleSize, 0.28); gl.uniform1f(U.u_circleEdge, 0.55);
+                    gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                    var mx = 60, my = 60, dx = 60, dy = 60, hover = false;
+                    document.addEventListener('mousemove', function (e) { var r = canvas.getBoundingClientRect(), pad = 80, rx = e.clientX - r.left, ry = e.clientY - r.top; if (rx >= -pad && rx <= r.width + pad && ry >= -pad && ry <= r.height + pad) { mx = rx; my = ry; hover = true; } else { hover = false; } });
+                    function resize() { var dpr = Math.min(window.devicePixelRatio || 1, 2); var w = canvas.parentElement.clientWidth || 120; var h = canvas.parentElement.clientHeight || 120; canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr); gl.viewport(0, 0, canvas.width, canvas.height); gl.uniform2f(U.u_resolution, canvas.width, canvas.height); gl.uniform1f(U.u_pixelRatio, dpr); }
+                    window.addEventListener('resize', resize); new ResizeObserver(resize).observe(canvas.parentElement); resize();
+                    var t0 = performance.now();
+                    (function loop() { var t = (performance.now() - t0) * 0.001; var cw = canvas.parentElement.clientWidth || 120; var ch = canvas.parentElement.clientHeight || 120; var idleX = cw / 2 + Math.cos(t * 0.9) * cw * 0.28; var idleY = ch / 2 + Math.sin(t * 1.1) * ch * 0.28; dx += ((hover ? mx : idleX) - dx) * 0.07; dy += ((hover ? my : idleY) - dy) * 0.07; gl.uniform2f(U.u_mouse, dx, dy); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(loop); })();
+                })();
+            });
+        };
 
         setTimeout(function () { lucide.createIcons(); }, 200);
     </script>

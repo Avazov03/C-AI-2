@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMAI — Resurslar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --bg: #e8edf5;
+            --primary: #1e40af;
+            --pl: #3b82f6;
+            --surface: #fff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+            --g: 12px;
+            --r: 20px;
+            --hdr: 62px;
+            --glow-color: 30, 64, 175;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            background: var(--bg);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            padding: var(--g);
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        body::-webkit-scrollbar {
+            width: 5px
+        }
+
+        body::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(30, 64, 175, 0.4);
+            border-radius: 99px
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.78);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-radius: var(--r);
+            box-shadow: 0 8px 32px -10px rgba(30, 64, 175, .15), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            position: relative;
+            overflow: hidden;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 300px;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.7)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.3)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* HEADER */
+        .hdr {
+            height: var(--hdr);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(28px) saturate(1.5);
+            -webkit-backdrop-filter: blur(28px) saturate(1.5);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: var(--r);
+            box-shadow: 0 2px 24px -6px rgba(30, 64, 175, .12), 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 26px;
+            position: sticky;
+            top: var(--g);
+            z-index: 100;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 400px;
+            transition: top .35s cubic-bezier(.4, 0, .2, 1), border-radius .35s cubic-bezier(.4, 0, .2, 1), background .35s, box-shadow .35s, margin .35s, padding .35s;
+        }
+
+        .hdr::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%,
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.25)) 40%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        .hdr.scrolled {
+            top: 0;
+            border-radius: 0;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(32px) saturate(1.6);
+            border-left: none;
+            border-right: none;
+            border-top: none;
+            border-bottom: 1px solid rgba(226, 232, 240, .4);
+            box-shadow: 0 1px 24px -4px rgba(30, 64, 175, .1);
+            margin-left: calc(-1 * var(--g));
+            margin-right: calc(-1 * var(--g));
+            padding-left: calc(26px + var(--g));
+            padding-right: calc(26px + var(--g));
+        }
+
+        .logo-ic {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .55);
+        }
+
+        nav a {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            transition: color .2s;
+            white-space: nowrap;
+            position: relative
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 0;
+            width: 0;
+            height: 2.5px;
+            background: var(--primary);
+            border-radius: 99px;
+            transition: width .25s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        nav a:hover {
+            color: var(--text)
+        }
+
+        nav a:hover::after {
+            width: 100%
+        }
+
+        .sbox {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 7px 16px
+        }
+
+        .sbox input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-family: inherit;
+            color: var(--text);
+            width: 120px
+        }
+
+        .nb {
+            position: relative;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            transition: background .2s
+        }
+
+        .nb:hover {
+            background: #f1f5f9
+        }
+
+        .nd {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 7px;
+            height: 7px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white
+        }
+
+        .gooey-nav-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav {
+            position: relative;
+            transform: translate3d(0, 0, 0.01px);
+            z-index: 3;
+        }
+
+        .gooey-nav-container>nav>ul {
+            display: flex;
+            gap: 2px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            align-items: center;
+        }
+
+        .gooey-nav-container>nav>ul>li {
+            position: relative;
+            cursor: pointer;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li>a {
+            display: block;
+            padding: 7px 15px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            text-decoration: none;
+            white-space: nowrap;
+            font-family: inherit;
+            position: relative;
+            z-index: 2;
+            transition: color 0.25s ease;
+            border-radius: 100vw;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>a {
+            color: white;
+        }
+
+        .gooey-nav-container>nav>ul>li>.gnav-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 100vw;
+            background: var(--primary);
+            z-index: 1;
+            transform: scale(0.3);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        .gooey-nav-container>nav>ul>li.active>.gnav-bg {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        #gnavParticleLayer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99999;
+            overflow: visible;
+        }
+
+        .gnav-dot {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            animation: gnavDot var(--dur, 0.9s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes gnavDot {
+            0% {
+                transform: translate(-50%, -50%) translate(0, 0) scale(1);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+
+        #global-spotlight {
+            position: fixed;
+            width: 700px;
+            height: 700px;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.13) 0%, rgba(30, 64, 175, 0.07) 20%, rgba(59, 130, 246, 0.04) 40%, transparent 70%);
+            z-index: 9999;
+            opacity: 0;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: multiply;
+            transition: opacity 0.4s ease;
+        }
+
+        .cmai-ripple {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%) scale(0);
+            border: 1.5px solid rgba(30, 64, 175, 0.5);
+            background: radial-gradient(circle, rgba(30, 64, 175, 0.12) 0%, transparent 70%);
+            animation: rippleOut 0.8s cubic-bezier(0.2, 0, 0.6, 1) forwards;
+        }
+
+        @keyframes rippleOut {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0;
+            }
+        }
+
+        /* KPI ROW */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--g);
+        }
+
+        .kpi-card {
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .kpi-val {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -.04em;
+            line-height: 1;
+        }
+
+        .kpi-lbl {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        /* MAIN TABS */
+        .main-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            border-radius: calc(var(--r) + 4px);
+            width: fit-content;
+        }
+
+        .mtab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .25s;
+            border: none;
+            background: none;
+            font-family: inherit;
+        }
+
+        .mtab:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .mtab.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .5);
+        }
+
+        .mtab .tab-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 99px;
+            background: rgba(255, 255, 255, .25);
+            color: inherit;
+        }
+
+        .mtab.active .tab-badge {
+            background: rgba(255, 255, 255, .25);
+        }
+
+        .mtab:not(.active) .tab-badge {
+            background: #f1f5f9;
+            color: var(--muted);
+        }
+
+        /* SECTION */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: flex;
+            gap: var(--g);
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        .content-area {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--g);
+        }
+
+        .sp-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sp-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sp-title .badge {
+            font-size: 9px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 7px;
+            border-radius: 99px;
+        }
+
+        .sp-body {
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+        }
+
+        .flbl {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .fsel-full {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            transition: border-color .2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+
+        .fsel-full:focus {
+            border-color: var(--primary);
+        }
+
+        /* tag filter */
+        .tag-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .ftag {
+            padding: 4px 11px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .ftag.on {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .fapply {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all .2s;
+            box-shadow: 0 4px 14px -4px rgba(30, 64, 175, .45);
+        }
+
+        .fapply:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px -4px rgba(30, 64, 175, .6);
+        }
+
+        .freset {
+            width: 100%;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+            margin-top: 5px;
+        }
+
+        .freset:hover {
+            border-color: var(--muted);
+            color: var(--text);
+        }
+
+        /* TOOLBAR */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            flex: 1;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .view-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: none;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+        }
+
+        .view-btn.on {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .sort-sel {
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 7px 12px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .result-info {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        /* DOCUMENT GRID */
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: var(--g);
+            padding: 18px;
+        }
+
+        .doc-list-view {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 0;
+        }
+
+        /* DOCUMENT CARD — GRID */
+        .doc-card {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all .22s;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            --glow-x: 50%;
+            --glow-y: 50%;
+            --glow-intensity: 0;
+            --glow-radius: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .doc-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            padding: 1.5px;
+            background: radial-gradient(var(--glow-radius) circle at var(--glow-x) var(--glow-y),
+                    rgba(var(--glow-color), calc(var(--glow-intensity)*0.6)) 0%, transparent 65%);
+            border-radius: inherit;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .doc-card:hover {
+            background: white;
+            border-color: var(--border);
+            box-shadow: 0 6px 24px -6px rgba(30, 64, 175, .14);
+            transform: translateY(-2px);
+        }
+
+        .doc-icon-wrap {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .doc-title {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.4;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .doc-meta {
+            font-size: 10.5px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 10px;
+        }
+
+        .doc-tags {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .doc-tag {
+            font-size: 9.5px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+
+        .doc-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .doc-date {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .doc-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: none;
+            border: 1.5px solid var(--border);
+            cursor: pointer;
+            color: var(--muted);
+            transition: all .2s;
+            font-size: 11px;
+        }
+
+        .doc-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* DOCUMENT CARD — LIST */
+        .doc-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 18px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .doc-row:hover {
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        .doc-row:last-child {
+            border-bottom: none;
+        }
+
+        /* PREVIEW PANEL */
+        .preview-panel {
+            width: 320px;
+            flex-shrink: 0;
+        }
+
+        .preview-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        /* ── LAW BASE ── */
+        .law-grid {
+            display: grid;
+            grid-template-columns: 240px 1fr 340px;
+            gap: var(--g);
+            width: 100%;
+        }
+
+        .law-cat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 4px;
+        }
+
+        .law-cat-item:hover {
+            background: #f1f5f9;
+        }
+
+        .law-cat-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .law-cat-item.active .lci-count {
+            background: rgba(255, 255, 255, .25);
+            color: white;
+        }
+
+        .lci-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .lci-label {
+            font-size: 12px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .lci-count {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 99px;
+            background: #f1f5f9;
+            color: var(--muted);
+        }
+
+        .law-item {
+            padding: 13px 16px;
+            border-bottom: 1px solid #f8fafc;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .law-item:hover {
+            background: rgba(59, 130, 246, 0.04);
+        }
+
+        .law-item.active {
+            background: #eff6ff;
+            border-left: 3px solid var(--primary);
+        }
+
+        .law-num {
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 3px;
+        }
+
+        .law-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .law-sub {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .law-detail {
+            padding: 20px;
+        }
+
+        .ld-num {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .ld-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        .ld-text {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--text);
+            line-height: 1.8;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+
+        .ld-cases {
+            margin-top: 4px;
+        }
+
+        .ldc-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .ldc-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 11px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text);
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        .ldc-item:hover {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        /* ── REPORT BUILDER ── */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 360px;
+            gap: var(--g);
+            width: 100%;
+            align-items: start;
+        }
+
+        .rp-section {
+            padding: 20px 22px;
+        }
+
+        .rp-sec-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: var(--muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rp-sec-title .badge {
+            font-size: 9px;
+            background: var(--primary);
+            color: white;
+            padding: 2px 7px;
+            border-radius: 99px;
+        }
+
+        .rp-field {
+            margin-bottom: 12px;
+        }
+
+        .rp-field label {
+            display: block;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .rp-input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 11px;
+            padding: 9px 13px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            color: var(--text);
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .rp-input:focus {
+            border-color: var(--primary);
+        }
+
+        .format-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .fmt-card {
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .fmt-card.selected {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .fmt-card:hover {
+            border-color: #93c5fd;
+        }
+
+        .fmt-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+        }
+
+        .fmt-lbl {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .fmt-sub {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .gen-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 14px;
+            font-size: 13px;
+            font-weight: 800;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all .25s;
+            box-shadow: 0 6px 20px -4px rgba(30, 64, 175, .5);
+            margin-top: 16px;
+        }
+
+        .gen-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px -4px rgba(30, 64, 175, .6);
+        }
+
+        .gen-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* preview card */
+        .preview-card {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 8px;
+        }
+
+        .pc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .pc-lbl {
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        .pc-val {
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        /* progress bar animation */
+        @keyframes progressFill {
+            from {
+                width: 0
+            }
+
+            to {
+                width: var(--w)
+            }
+        }
+
+        .prog-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .prog-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--primary);
+            width: 0;
+            transition: width 1.2s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        /* loading spinner */
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2.5px solid rgba(255, 255, 255, .3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        /* recent docs */
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+
+        .recent-item:hover {
+            opacity: .75;
+        }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="global-spotlight"></div>
+    <div id="gnavParticleLayer"></div>
+
+    <!-- HEADER -->
+    <header class="hdr">
+        <div style="display:flex;align-items:center;gap:26px">
+            <div style="display:flex;align-items:center;gap:10px">
+                <div class="logo-ic"><i data-lucide="layers" style="width:18px;height:18px;color:white"></i></div>
+                <span style="font-size:20px;font-weight:800;letter-spacing:-.04em;color:#0f172a">CMAI<span
+                        style="color:#3b82f6">.</span></span>
+            </div>
+            <div class="gooey-nav-container" id="gooeyNavContainer">
+                <nav>
+                    <ul id="gooeyNavList">
+                        <li><span class="gnav-bg"></span><a href="index.html" data-page="index">Dashboard</a></li>
+                        <li><span class="gnav-bg"></span><a href="ai_chat_bot.html" data-page="ai_chat_bot">AI chat</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="monitoring.html" data-page="monitoring">Monitoring</a>
+                        </li>
+                        <li><span class="gnav-bg"></span><a href="tahlil.html" data-page="hududlar">Hududlar
+                                tahlili</a></li>
+                        <li><span class="gnav-bg"></span><a href="resurslar.html" data-page="resurslar">Resurslar</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+            <div class="sbox">
+                <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                <input type="text" placeholder="Hujjat, modda, ish raqami...">
+            </div>
+            <button class="nb"><i data-lucide="bell" style="width:17px;height:17px"></i><span
+                    class="nd"></span></button>
+            <div style="display:flex;align-items:center;gap:9px;padding-left:12px;border-left:1px solid var(--border)">
+                <div style="text-align:right">
+                    <p style="font-size:11.5px;font-weight:800;color:var(--text)">Admin User</p>
+                    <p style="font-size:10px;color:var(--muted)">Boshqaruvchi</p>
+                </div>
+                <div
+                    style="width:34px;height:34px;border-radius:10px;overflow:hidden;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=1e40af&color=fff" alt=""
+                        style="width:100%;height:100%">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+        <div class="panel kpi-card">
+            <div class="kpi-icon" style="background:#eff6ff"><i data-lucide="file-text"
+                    style="width:22px;height:22px;color:#1e40af"></i></div>
+            <div>
+                <div class="kpi-val">4,000</div>
+                <div class="kpi-lbl">Jami hujjatlar</div>
+            </div>
+        </div>
+        <div class="panel kpi-card">
+            <div class="kpi-icon" style="background:#fef3c7"><i data-lucide="scale"
+                    style="width:22px;height:22px;color:#d97706"></i></div>
+            <div>
+                <div class="kpi-val">248</div>
+                <div class="kpi-lbl">Qonun moddalari</div>
+            </div>
+        </div>
+        <div class="panel kpi-card">
+            <div class="kpi-icon" style="background:#dcfce7"><i data-lucide="bar-chart-2"
+                    style="width:22px;height:22px;color:#16a34a"></i></div>
+            <div>
+                <div class="kpi-val">37</div>
+                <div class="kpi-lbl">Yaratilgan hisobotlar</div>
+            </div>
+        </div>
+        <div class="panel kpi-card">
+            <div class="kpi-icon" style="background:#f3e8ff"><i data-lucide="brain-circuit"
+                    style="width:22px;height:22px;color:#7c3aed"></i></div>
+            <div>
+                <div class="kpi-val">3,641</div>
+                <div class="kpi-lbl">AI tahlil qilingan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN TABS -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div class="main-tabs">
+            <button class="mtab active" onclick="switchTab('archive')">
+                <i data-lucide="archive" style="width:14px;height:14px"></i>
+                Hujjatlar arxivi
+                <span class="tab-badge">4,000</span>
+            </button>
+            <button class="mtab" onclick="switchTab('law')">
+                <i data-lucide="scale" style="width:14px;height:14px"></i>
+                Qonunchilik bazasi
+                <span class="tab-badge">248</span>
+            </button>
+            <button class="mtab" onclick="switchTab('report')">
+                <i data-lucide="file-output" style="width:14px;height:14px"></i>
+                Hisobot yaratish
+            </button>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;color:var(--muted);">
+            <i data-lucide="refresh-cw" style="width:12px;height:12px"></i>
+            Oxirgi yangilanish: bugun, 09:41
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+     TAB 1: HUJJATLAR ARXIVI
+══════════════════════════════════ -->
+    <div class="section active" id="sec-archive">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div class="sp-head">
+                    <div class="sp-title"><span class="badge">F</span> Filtrlar</div>
+                </div>
+                <div class="sp-body">
+                    <div>
+                        <div class="flbl">Hujjat turi</div>
+                        <select class="fsel-full" id="af-type">
+                            <option value="all">Barchasi</option>
+                            <option value="tergov">Tergov materiallari</option>
+                            <option value="sud">Sud qarorlari</option>
+                            <option value="ekspert">Ekspertiza xulosalari</option>
+                            <option value="ariz">Arizalar va shikoyatlar</option>
+                            <option value="guvoh">Guvoh ko'rsatmalari</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flbl">Holat</div>
+                        <select class="fsel-full" id="af-status">
+                            <option value="all">Barchasi</option>
+                            <option value="active">Faol</option>
+                            <option value="closed">Yopilgan</option>
+                            <option value="archived">Arxivlangan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flbl">Viloyat</div>
+                        <select class="fsel-full" id="af-region">
+                            <option value="all">Barcha viloyatlar</option>
+                            <option value="tashkent">Toshkent shahri</option>
+                            <option value="fargona">Farg'ona viloyati</option>
+                            <option value="andijon">Andijon viloyati</option>
+                            <option value="samarqand">Samarqand viloyati</option>
+                            <option value="buxoro">Buxoro viloyati</option>
+                            <option value="qashqa">Qashqadaryo viloyati</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flbl">Yil</div>
+                        <select class="fsel-full" id="af-year">
+                            <option value="all">Barcha yillar</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="flbl">Teglar</div>
+                        <div class="tag-cloud" id="tagCloud">
+                            <span class="ftag on" data-tag="all">Barchasi</span>
+                            <span class="ftag" data-tag="mulk">Mulkiy</span>
+                            <span class="ftag" data-tag="shaxs">Shaxsga</span>
+                            <span class="ftag" data-tag="nark">Narkotik</span>
+                            <span class="ftag" data-tag="iqt">Iqtisodiy</span>
+                            <span class="ftag" data-tag="yol">Yo'l-transport</span>
+                        </div>
+                    </div>
+                    <button class="fapply" id="af-apply">
+                        <i data-lucide="search" style="width:13px;height:13px"></i>
+                        Qidirish
+                    </button>
+                    <button class="freset" id="af-reset">Tozalash</button>
+                </div>
+            </div>
+
+            <!-- So'nggi ko'rilgan -->
+            <div class="panel" style="padding:16px 18px;">
+                <div class="flbl" style="margin-bottom:10px;">So'nggi ko'rilgan</div>
+                <div id="recentList"></div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="content-area">
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <!-- toolbar -->
+                <div class="toolbar">
+                    <div class="search-bar">
+                        <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                        <input type="text" id="af-search" placeholder="Ish raqami, nom, manzil bo'yicha qidirish...">
+                    </div>
+                    <select class="sort-sel" id="af-sort">
+                        <option value="date-desc">Yangi birinchi</option>
+                        <option value="date-asc">Eski birinchi</option>
+                        <option value="name-asc">Nom A–Z</option>
+                        <option value="type">Tur bo'yicha</option>
+                    </select>
+                    <button class="view-btn on" id="viewGrid" title="Grid ko'rinish">
+                        <i data-lucide="grid-3x3" style="width:14px;height:14px"></i>
+                    </button>
+                    <button class="view-btn" id="viewList" title="Ro'yxat ko'rinish">
+                        <i data-lucide="list" style="width:14px;height:14px"></i>
+                    </button>
+                    <span class="result-info" id="docCount">4,000 ta hujjat</span>
+                </div>
+
+                <!-- document grid -->
+                <div id="docContainer" class="doc-grid"></div>
+
+                <!-- pagination -->
+                <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--border);">
+                    <span style="font-size:12px;font-weight:600;color:var(--muted);">1–24 / <span
+                            id="totalDocs">4,000</span></span>
+                    <div style="display:flex;gap:5px;" id="pagination"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════
+     TAB 2: QONUNCHILIK BAZASI
+══════════════════════════════════ -->
+    <div class="section" id="sec-law">
+        <div class="law-grid">
+            <!-- Categories -->
+            <div class="panel" style="padding:16px;">
+                <div class="flbl" style="margin-bottom:12px;">Bo'limlar</div>
+                <div id="lawCats"></div>
+            </div>
+
+            <!-- Article list -->
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div class="toolbar" style="padding:12px 16px;">
+                    <div class="search-bar">
+                        <i data-lucide="search" style="width:13px;height:13px;color:#94a3b8;flex-shrink:0"></i>
+                        <input type="text" id="law-search" placeholder="Modda raqami yoki kalit so'z...">
+                    </div>
+                </div>
+                <div id="lawList" style="overflow-y:auto;flex:1;"></div>
+            </div>
+
+            <!-- Article detail -->
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div id="lawDetail" style="flex:1;overflow-y:auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+     TAB 3: HISOBOT YARATISH
+══════════════════════════════════ -->
+    <div class="section" id="sec-report">
+        <div class="report-grid">
+
+            <!-- Column 1: Parameters -->
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div class="rp-section">
+                    <div class="rp-sec-title"><span class="badge">1</span> Parametrlar</div>
+                    <div class="rp-field">
+                        <label>Hisobot nomi</label>
+                        <input class="rp-input" type="text" value="2025 yil jinoyat tahlili" id="rep-name">
+                    </div>
+                    <div class="rp-field">
+                        <label>Davr</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                            <input class="rp-input" type="date" value="2025-01-01" id="rep-from">
+                            <input class="rp-input" type="date" value="2025-12-31" id="rep-to">
+                        </div>
+                    </div>
+                    <div class="rp-field">
+                        <label>Viloyat</label>
+                        <select class="rp-input" id="rep-region" style="appearance:none;cursor:pointer;">
+                            <option value="all">Barcha viloyatlar</option>
+                            <option>Toshkent shahri</option>
+                            <option>Farg'ona viloyati</option>
+                            <option>Andijon viloyati</option>
+                            <option>Samarqand viloyati</option>
+                        </select>
+                    </div>
+                    <div class="rp-field">
+                        <label>Ma'lumot chuqurligi</label>
+                        <select class="rp-input" id="rep-depth" style="appearance:none;cursor:pointer;">
+                            <option>Umumiy ko'rinish</option>
+                            <option>O'rta chuqurlik</option>
+                            <option>To'liq tahlil</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 2: Content & Format -->
+            <div class="panel" style="display:flex;flex-direction:column;">
+                <div class="rp-section">
+                    <div class="rp-sec-title"><span class="badge">2</span> Qo'shiladigan bo'limlar</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;" id="repSections">
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Umumiy statistika</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Viloyatlar taqqoslash</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Jinoyat turlari tahlili</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Demografik tahlil</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Trend va prognoz</span>
+                        </label>
+                        <label
+                            style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;background:#f8fafc;border-radius:11px;">
+                            <input type="checkbox" checked style="width:15px;height:15px;accent-color:var(--primary);">
+                            <span style="font-size:12px;font-weight:700;">Xaritali vizualizatsiya</span>
+                        </label>
+                    </div>
+
+                    <div class="rp-sec-title"><span class="badge">3</span> Format</div>
+                    <div class="format-grid">
+                        <div class="fmt-card selected" onclick="selectFmt(this,'pdf')">
+                            <div class="fmt-icon" style="background:#fee2e2;"><i data-lucide="file-text"
+                                    style="width:18px;height:18px;color:#dc2626"></i></div>
+                            <div class="fmt-lbl">PDF</div>
+                            <div class="fmt-sub">Rasmiy hujjat</div>
+                        </div>
+                        <div class="fmt-card" onclick="selectFmt(this,'excel')">
+                            <div class="fmt-icon" style="background:#dcfce7;"><i data-lucide="table"
+                                    style="width:18px;height:18px;color:#16a34a"></i></div>
+                            <div class="fmt-lbl">Excel</div>
+                            <div class="fmt-sub">Ma'lumotlar jadvali</div>
+                        </div>
+                        <div class="fmt-card" onclick="selectFmt(this,'word')">
+                            <div class="fmt-icon" style="background:#dbeafe;"><i data-lucide="file-type"
+                                    style="width:18px;height:18px;color:#2563eb"></i></div>
+                            <div class="fmt-lbl">Word</div>
+                            <div class="fmt-sub">Tahrirlash uchun</div>
+                        </div>
+                        <div class="fmt-card" onclick="selectFmt(this,'json')">
+                            <div class="fmt-icon" style="background:#f3e8ff;"><i data-lucide="braces"
+                                    style="width:18px;height:18px;color:#7c3aed"></i></div>
+                            <div class="fmt-lbl">JSON</div>
+                            <div class="fmt-sub">API integratsiya</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Column 3: Preview + Generate -->
+            <div style="display:flex;flex-direction:column;gap:var(--g);">
+                <div class="panel">
+                    <div class="rp-section">
+                        <div class="rp-sec-title" style="margin-bottom:12px;"><span class="badge">4</span> Ko'rib
+                            chiqish</div>
+                        <div class="preview-card">
+                            <div class="pc-row"><span class="pc-lbl">Hujjatlar soni</span><span class="pc-val"
+                                    id="prev-count">4,000</span></div>
+                            <div class="prog-bar">
+                                <div class="prog-fill" id="prev-bar" style="--w:100%;width:100%;"></div>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="pc-row"><span class="pc-lbl">Davr</span><span class="pc-val"
+                                    id="prev-period">2025 yil</span></div>
+                            <div class="pc-row" style="margin-bottom:0;margin-top:4px;"><span
+                                    class="pc-lbl">Viloyat</span><span class="pc-val" id="prev-region">Barcha</span>
+                            </div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="pc-row"><span class="pc-lbl">Bo'limlar soni</span><span class="pc-val"
+                                    id="prev-sections">4 ta</span></div>
+                            <div class="pc-row" style="margin-bottom:0;margin-top:4px;"><span
+                                    class="pc-lbl">Format</span><span class="pc-val" id="prev-format">PDF</span></div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="pc-row" style="margin-bottom:0;"><span class="pc-lbl">Taxminiy hajm</span><span
+                                    class="pc-val" id="prev-size">~2.4 MB</span></div>
+                        </div>
+
+                        <button class="gen-btn" id="genBtn" onclick="generateReport()">
+                            <i data-lucide="file-output" style="width:16px;height:16px"></i>
+                            <span id="genBtnText">Hisobot yaratish</span>
+                            <div class="spinner" id="genSpinner"></div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Oldingi hisobotlar -->
+                <div class="panel" style="padding:16px 18px;">
+                    <div class="flbl" style="margin-bottom:12px;">Oldingi hisobotlar</div>
+                    <div id="prevReports"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        (function () {
+
+            /* ── SPOTLIGHT + GLOW ── */
+            const spotlight = document.getElementById('global-spotlight');
+            let spotVis = false;
+            document.addEventListener('mousemove', e => {
+                spotlight.style.transform = `translate(${e.clientX}px,${e.clientY}px) translate(-50%,-50%)`;
+                if (!spotVis) { spotVis = true; spotlight.style.opacity = '1'; }
+            });
+            document.addEventListener('mouseleave', () => { spotVis = false; spotlight.style.opacity = '0'; });
+            document.querySelectorAll('.panel,.hdr,.doc-card').forEach(el => {
+                el.addEventListener('mousemove', e => {
+                    const r = el.getBoundingClientRect();
+                    el.style.setProperty('--glow-x', (e.clientX - r.left) + 'px');
+                    el.style.setProperty('--glow-y', (e.clientY - r.top) + 'px');
+                    el.style.setProperty('--glow-intensity', '0.45');
+                });
+                el.addEventListener('mouseleave', () => el.style.setProperty('--glow-intensity', '0'));
+            });
+            document.addEventListener('click', e => {
+                const r = document.createElement('div'); r.className = 'cmai-ripple';
+                r.style.cssText = `left:${e.clientX}px;top:${e.clientY}px;width:80px;height:80px;`;
+                document.body.appendChild(r); setTimeout(() => r.remove(), 900);
+            });
+            window.addEventListener('scroll', () => document.querySelector('.hdr').classList.toggle('scrolled', window.scrollY > 20));
+
+            /* ── GOOEY NAV ── */
+            const listItems = Array.from(document.querySelectorAll('#gooeyNavList > li'));
+            const particleLayer = document.getElementById('gnavParticleLayer');
+            let activeIndex = -1;
+            const GC = ['#1e40af', '#2563eb', '#3b82f6', '#60a5fa', '#93c5fd'];
+            function spawnParticles(li) {
+                const rect = li.getBoundingClientRect(), cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+                for (let i = 0; i < 18; i++) {
+                    const a = (360 / 18) * i + (Math.random() - .5) * 20, rad = a * Math.PI / 180, dist = 55 * (0.7 + Math.random() * 0.7);
+                    const tx = Math.cos(rad) * dist, ty = Math.sin(rad) * dist, sz = 4 + Math.random() * 5, dur = 0.55 + Math.random() * 0.45, delay = Math.random() * 80;
+                    const color = GC[Math.floor(Math.random() * GC.length)];
+                    const dot = document.createElement('div'); dot.className = 'gnav-dot';
+                    dot.style.cssText = `left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;background:${color};box-shadow:0 0 ${sz * 1.5}px ${color};--tx:${tx}px;--ty:${ty}px;--dur:${dur}s;animation-delay:${delay}ms;`;
+                    particleLayer.appendChild(dot); setTimeout(() => dot.remove(), (dur + delay / 1000 + 0.1) * 1000);
+                }
+            }
+            function activateItem(i) { if (activeIndex === i) return; if (activeIndex >= 0) listItems[activeIndex].classList.remove('active'); activeIndex = i; listItems[i].classList.add('active'); spawnParticles(listItems[i]); }
+            listItems.forEach((li, i) => li.addEventListener('click', () => activateItem(i)));
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                const page = location.pathname.split('/').pop().replace('.html', '') || 'index';
+                let found = 0; listItems.forEach((li, i) => { const a = li.querySelector('a[data-page]'); if (a && a.dataset.page === page) found = i; });
+                activeIndex = found; listItems[found].classList.add('active');
+            }));
+            setTimeout(() => lucide.createIcons(), 200);
+
+            /* ══════════════════════════════════════
+               TAB SWITCHING
+            ══════════════════════════════════════ */
+            window.switchTab = function (id) {
+                document.querySelectorAll('.mtab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                const idx = { archive: 0, law: 1, report: 2 }[id];
+                document.querySelectorAll('.mtab')[idx].classList.add('active');
+                document.getElementById('sec-' + id).classList.add('active');
+                setTimeout(() => lucide.createIcons(), 50);
+            };
+
+            /* ══════════════════════════════════════
+               DATA
+            ══════════════════════════════════════ */
+            const DOC_TYPES = {
+                tergov: { label: 'Tergov materiali', icon: 'search', color: '#2563eb', bg: '#dbeafe' },
+                sud: { label: 'Sud qarori', icon: 'gavel', color: '#d97706', bg: '#fef3c7' },
+                ekspert: { label: 'Ekspertiza', icon: 'microscope', color: '#7c3aed', bg: '#f3e8ff' },
+                ariz: { label: 'Ariza', icon: 'file-pen', color: '#059669', bg: '#d1fae5' },
+                guvoh: { label: "Guvoh ko'rsatmasi", icon: 'user-check', color: '#dc2626', bg: '#fee2e2' },
+            };
+            const STATUS_CLS = { active: 's-active', closed: 's-closed', archived: 's-arch' };
+            const STATUS_LBL = { active: 'Faol', closed: 'Yopilgan', archived: 'Arxiv' };
+            const STATUS_COLOR = { active: { bg: '#eff6ff', c: '#2563eb' }, closed: { bg: '#dcfce7', c: '#16a34a' }, archived: { bg: '#f1f5f9', c: '#64748b' } };
+            const REGIONS = ['Toshkent sh.', 'Farg\'ona v.', 'Andijon v.', 'Namangan v.', 'Samarqand v.', 'Buxoro v.', 'Qashqadaryo v.', 'Surxondaryo v.'];
+            const TAGS = { theft: 'Mulkiy', shaxs: 'Shaxsga qarshi', nark: 'Narkotik', iqt: 'Iqtisodiy', yol: "Yo'l-transport" };
+            const tagKeys = Object.keys(TAGS);
+            const typeKeys = Object.keys(DOC_TYPES);
+            const statusKeys = ['active', 'active', 'closed', 'closed', 'archived'];
+
+            function rnd(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+            function rndInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+
+            const DOCS = [];
+            const titles = [
+                'Uy-joy o\'g\'irlash ishi bo\'yicha tergov',
+                'Narkotik moddalarni tarqatish',
+                'Moliyaviy firibgarlik ishi',
+                "Transport hodisasi bo'yicha dalolatnoma",
+                'Jismoniy shikastlash ishi',
+                'Pochta jo\'natmalarini o\'g\'irlash',
+                'Korrupsiya faktlari bo\'yicha tergov',
+                'Qurol-yarog\' noqonuniy saqlash',
+                'Internet orqali firibgarlik',
+                'Savdo nuqtasini talonchilik',
+                'Uy bosib kirish ishi',
+                'Bank hisobidan mablag\'ni o\'g\'irlash',
+                "Xizmat vazifasini suiiste'mol qilish",
+                'Yuk mashinasi to\'qnashuvi',
+                'Giyohvandlik modda ishlab chiqarish',
+            ];
+            for (let i = 0; i < 120; i++) {
+                const type = typeKeys[i % typeKeys.length];
+                const status = rnd(statusKeys);
+                const tag = rnd(tagKeys);
+                const y = rnd([2023, 2024, 2025]);
+                const m = rndInt(1, 12), d = rndInt(1, 28);
+                DOCS.push({
+                    id: 'HUJ-' + String(100000 + i + 1),
+                    title: titles[i % titles.length],
+                    type, status, tag,
+                    region: REGIONS[i % REGIONS.length],
+                    date: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+                    pages: rndInt(4, 48),
+                    year: y
+                });
+            }
+
+            /* ══════════════════════════════════════
+               ARCHIVE SECTION
+            ══════════════════════════════════════ */
+            let viewMode = 'grid';
+            let currentDocs = [...DOCS];
+            let currentPage = 1;
+            const PER_PAGE = 12;
+
+            function renderDocs() {
+                const container = document.getElementById('docContainer');
+                const start = (currentPage - 1) * PER_PAGE, end = Math.min(start + PER_PAGE, currentDocs.length);
+                const page = currentDocs.slice(start, end);
+
+                if (viewMode === 'grid') {
+                    container.className = 'doc-grid';
+                    container.innerHTML = page.map((d, i) => {
+                        const t = DOC_TYPES[d.type];
+                        const sc = STATUS_COLOR[d.status];
+                        return `<div class="doc-card" onclick="openDoc(${DOCS.indexOf(d)})">
+                <div class="doc-icon-wrap" style="background:${t.bg}">
+                    <i data-lucide="${t.icon}" style="width:20px;height:20px;color:${t.color}"></i>
+                </div>
+                <div class="doc-title">${d.title}</div>
+                <div class="doc-meta">${d.region} · ${d.pages} bet</div>
+                <div class="doc-tags">
+                    <span class="doc-tag" style="background:${sc.bg};color:${sc.c}">${STATUS_LBL[d.status]}</span>
+                    <span class="doc-tag" style="background:#f1f5f9;color:#64748b">${TAGS[d.tag]}</span>
+                </div>
+                <div class="doc-footer">
+                    <span class="doc-date">${d.date}</span>
+                    <div class="doc-actions">
+                        <button class="doc-btn" title="Ko'rish" onclick="event.stopPropagation();openDoc(${DOCS.indexOf(d)})">
+                            <i data-lucide="eye" style="width:12px;height:12px"></i>
+                        </button>
+                        <button class="doc-btn" title="Yuklab olish" onclick="event.stopPropagation();downloadDoc('${d.id}')">
+                            <i data-lucide="download" style="width:12px;height:12px"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+                    }).join('');
+                } else {
+                    container.className = 'doc-list-view';
+                    container.innerHTML = page.map((d) => {
+                        const t = DOC_TYPES[d.type];
+                        const sc = STATUS_COLOR[d.status];
+                        return `<div class="doc-row" onclick="openDoc(${DOCS.indexOf(d)})">
+                <div style="width:34px;height:34px;border-radius:10px;background:${t.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i data-lucide="${t.icon}" style="width:15px;height:15px;color:${t.color}"></i>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:12.5px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.title}</div>
+                    <div style="font-size:11px;color:var(--muted);font-weight:600;">${d.id} · ${d.region}</div>
+                </div>
+                <span style="font-size:10px;font-weight:800;padding:2px 9px;border-radius:99px;background:${sc.bg};color:${sc.c};flex-shrink:0;">${STATUS_LBL[d.status]}</span>
+                <span style="font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0;width:70px;text-align:right;">${d.date}</span>
+                <div style="display:flex;gap:5px;flex-shrink:0;">
+                    <button class="doc-btn" onclick="event.stopPropagation();openDoc(${DOCS.indexOf(d)})"><i data-lucide="eye" style="width:12px;height:12px"></i></button>
+                    <button class="doc-btn" onclick="event.stopPropagation();downloadDoc('${d.id}')"><i data-lucide="download" style="width:12px;height:12px"></i></button>
+                </div>
+            </div>`;
+                    }).join('');
+                }
+
+                document.getElementById('docCount').textContent = currentDocs.length.toLocaleString() + ' ta hujjat';
+                document.getElementById('totalDocs').textContent = currentDocs.length.toLocaleString();
+                renderPagination();
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+
+            function renderPagination() {
+                const total = Math.ceil(currentDocs.length / PER_PAGE);
+                const pg = document.getElementById('pagination');
+                let html = '';
+                const pages = [];
+                for (let i = 1; i <= Math.min(total, 7); i++) pages.push(i);
+                pages.forEach(p => {
+                    html += `<button onclick="gotoPage(${p})" style="width:32px;height:32px;border-radius:9px;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;border:1.5px solid ${p === currentPage ? 'var(--primary)' : 'var(--border)'};background:${p === currentPage ? 'var(--primary)' : 'none'};color:${p === currentPage ? 'white' : 'var(--muted)'};">${p}</button>`;
+                });
+                pg.innerHTML = html;
+            }
+
+            window.gotoPage = function (p) { currentPage = p; renderDocs(); };
+
+            function applyDocFilter() {
+                const type = document.getElementById('af-type').value;
+                const status = document.getElementById('af-status').value;
+                const region = document.getElementById('af-region').value;
+                const year = document.getElementById('af-year').value;
+                const search = document.getElementById('af-search').value.toLowerCase();
+                const tag = document.querySelector('#tagCloud .ftag.on')?.dataset.tag || 'all';
+
+                currentDocs = DOCS.filter(d => {
+                    if (type !== 'all' && d.type !== type) return false;
+                    if (status !== 'all' && d.status !== status) return false;
+                    if (region !== 'all') { const rmap = { tashkent: 'Toshkent sh.', fargona: "Farg'ona v.", andijon: 'Andijon v.', samarqand: 'Samarqand v.', buxoro: 'Buxoro v.', qashqa: 'Qashqadaryo v.' }; if (d.region !== rmap[region]) return false; }
+                    if (year !== 'all' && d.year !== parseInt(year)) return false;
+                    if (tag !== 'all' && d.tag !== tag) return false;
+                    if (search && !d.title.toLowerCase().includes(search) && !d.id.toLowerCase().includes(search)) return false;
+                    return true;
+                });
+
+                const sort = document.getElementById('af-sort').value;
+                if (sort === 'date-desc') currentDocs.sort((a, b) => b.date.localeCompare(a.date));
+                else if (sort === 'date-asc') currentDocs.sort((a, b) => a.date.localeCompare(b.date));
+                else if (sort === 'name-asc') currentDocs.sort((a, b) => a.title.localeCompare(b.title));
+                else currentDocs.sort((a, b) => a.type.localeCompare(b.type));
+
+                currentPage = 1;
+                renderDocs();
+            }
+
+            document.getElementById('af-apply').addEventListener('click', applyDocFilter);
+            document.getElementById('af-search').addEventListener('input', applyDocFilter);
+            document.getElementById('af-sort').addEventListener('change', applyDocFilter);
+            document.getElementById('af-reset').addEventListener('click', () => {
+                document.getElementById('af-type').value = 'all';
+                document.getElementById('af-status').value = 'all';
+                document.getElementById('af-region').value = 'all';
+                document.getElementById('af-year').value = 'all';
+                document.getElementById('af-search').value = '';
+                document.querySelectorAll('#tagCloud .ftag').forEach(t => { t.classList.remove('on'); if (t.dataset.tag === 'all') t.classList.add('on'); });
+                currentDocs = [...DOCS]; currentPage = 1; renderDocs();
+            });
+
+            document.getElementById('tagCloud').addEventListener('click', e => {
+                const t = e.target.closest('.ftag'); if (!t) return;
+                document.querySelectorAll('#tagCloud .ftag').forEach(x => x.classList.remove('on'));
+                t.classList.add('on'); applyDocFilter();
+            });
+
+            document.getElementById('viewGrid').addEventListener('click', () => {
+                viewMode = 'grid';
+                document.getElementById('viewGrid').classList.add('on');
+                document.getElementById('viewList').classList.remove('on');
+                renderDocs();
+            });
+            document.getElementById('viewList').addEventListener('click', () => {
+                viewMode = 'list';
+                document.getElementById('viewList').classList.add('on');
+                document.getElementById('viewGrid').classList.remove('on');
+                renderDocs();
+            });
+
+            /* doc open / download */
+            const recentDocs = [];
+            window.openDoc = function (idx) {
+                const d = DOCS[idx];
+                if (!recentDocs.find(r => r.id === d.id)) { recentDocs.unshift(d); if (recentDocs.length > 5) recentDocs.pop(); renderRecent(); }
+                // small notification
+                const notif = document.createElement('div');
+                notif.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(30,64,175,.95);color:white;padding:11px 22px;border-radius:14px;font-size:12px;font-weight:800;z-index:99999;box-shadow:0 8px 24px rgba(30,64,175,.4);transition:all .3s;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:8px;`;
+                notif.innerHTML = `<i data-lucide="eye" style="width:14px;height:14px"></i> ${d.id} — ${d.title.slice(0, 32)}...`;
+                document.body.appendChild(notif);
+                requestAnimationFrame(() => requestAnimationFrame(() => { notif.style.transform = 'translateX(-50%) translateY(0)'; lucide.createIcons(); }));
+                setTimeout(() => { notif.style.opacity = '0'; notif.style.transform = 'translateX(-50%) translateY(10px)'; setTimeout(() => notif.remove(), 300); }, 2800);
+            };
+            window.downloadDoc = function (id) {
+                const notif = document.createElement('div');
+                notif.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(22,163,74,.95);color:white;padding:11px 22px;border-radius:14px;font-size:12px;font-weight:800;z-index:99999;box-shadow:0 8px 24px rgba(22,163,74,.4);transition:all .3s;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:8px;`;
+                notif.innerHTML = `<i data-lucide="download" style="width:14px;height:14px"></i> ${id} yuklab olindi`;
+                document.body.appendChild(notif);
+                requestAnimationFrame(() => requestAnimationFrame(() => { notif.style.transform = 'translateX(-50%) translateY(0)'; lucide.createIcons(); }));
+                setTimeout(() => { notif.style.opacity = '0'; notif.style.transform = 'translateX(-50%) translateY(10px)'; setTimeout(() => notif.remove(), 300); }, 2200);
+            };
+
+            function renderRecent() {
+                const el = document.getElementById('recentList');
+                if (!recentDocs.length) { el.innerHTML = '<div style="font-size:11px;color:var(--muted);font-weight:600;text-align:center;padding:8px 0;">Hali hujjat ochilmagan</div>'; return; }
+                el.innerHTML = recentDocs.map(d => {
+                    const t = DOC_TYPES[d.type];
+                    return `<div class="recent-item" onclick="openDoc(${DOCS.indexOf(d)})">
+            <div style="width:28px;height:28px;border-radius:8px;background:${t.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="${t.icon}" style="width:13px;height:13px;color:${t.color}"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:11.5px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.title.slice(0, 28)}...</div>
+                <div style="font-size:10px;color:var(--muted);">${d.id}</div>
+            </div>
+        </div>`;
+                }).join('');
+                setTimeout(() => lucide.createIcons(), 40);
+            }
+
+            renderRecent();
+            renderDocs();
+
+            /* ══════════════════════════════════════
+               LAW BASE SECTION
+            ══════════════════════════════════════ */
+            const LAW_CATS = [
+                { id: 'umumiy', label: 'Umumiy qoidalar', icon: 'book-open', count: 28, color: '#1e40af', bg: '#eff6ff' },
+                { id: 'mulk', label: 'Mulkka qarshi', icon: 'home', count: 42, color: '#dc2626', bg: '#fee2e2' },
+                { id: 'shaxs', label: 'Shaxsga qarshi', icon: 'user-x', count: 38, color: '#d97706', bg: '#fef3c7' },
+                { id: 'davlat', label: 'Davlat manfaatlari', icon: 'landmark', count: 31, color: '#7c3aed', bg: '#f3e8ff' },
+                { id: 'iqt', label: 'Iqtisodiy jinoyatlar', icon: 'trending-down', count: 35, color: '#2563eb', bg: '#dbeafe' },
+                { id: 'ekol', label: 'Ekologiya', icon: 'leaf', count: 22, color: '#059669', bg: '#d1fae5' },
+                { id: 'nark', label: 'Narkotik moddalar', icon: 'pill', count: 29, color: '#db2777', bg: '#fce7f3' },
+                { id: 'yol', label: "Yo'l harakati", icon: 'car', count: 23, color: '#0891b2', bg: '#cffafe' },
+            ];
+            const LAWS = [
+                { cat: 'mulk', num: '168-modda', title: "Qaroqchilik", sub: "Zo'rlik ishlatib o'g'irlik", sanction: "5–10 yil", cases: 247 },
+                { cat: 'mulk', num: '169-modda', title: "O'g'irlik", sub: "Mulkni yashirin olib ketish", sanction: "3–7 yil", cases: 890 },
+                { cat: 'mulk', num: '171-modda', title: "Firibgarlik", sub: "Aldov yo'li bilan mol-mulk olish", sanction: "2–8 yil", cases: 312 },
+                { cat: 'mulk', num: '173-modda', title: "Talon-taroj", sub: "Mulkni ochiq olib ketish", sanction: "2–5 yil", cases: 156 },
+                { cat: 'shaxs', num: '97-modda', title: "Qasddan o'ldirish", sub: "Insonni qasddan hayotdan mahrum qilish", sanction: "10–20 yil", cases: 89 },
+                { cat: 'shaxs', num: '104-modda', title: "Qasddan og'ir tan jarohati", sub: "Sog'liq uchun xavfli shikast", sanction: "5–12 yil", cases: 178 },
+                { cat: 'shaxs', num: '110-modda', title: "Tahdid solinish", sub: "O'ldirish yoki tan jarohati etkazish bilan", sanction: "1–3 yil", cases: 234 },
+                { cat: 'nark', num: '273-modda', title: "Narkotik moddalar tayyorlash", sub: "Noqonuniy ishlab chiqarish", sanction: "7–15 yil", cases: 143 },
+                { cat: 'nark', num: '276-modda', title: "Narkotik moddalar tarqatish", sub: "Savdo-sotiq va ta'minlash", sanction: "8–20 yil", cases: 198 },
+                { cat: 'iqt', num: '184-modda', title: "Soliq to'lashdan bo'yin tovlamoq", sub: "Katta miqdordagi soliq yashirish", sanction: "3–7 yil", cases: 87 },
+                { cat: 'iqt', num: '185-modda', title: "Pul mablag'ini qalbakilashtirish", sub: "Soxta pul muomalasi", sanction: "5–10 yil", cases: 43 },
+                { cat: 'davlat', num: '209-modda', title: "Pora olish", sub: "Mansabdor shaxsning pora olishi", sanction: "5–12 yil", cases: 156 },
+                { cat: 'davlat', num: '205-modda', title: "Xizmat mansabini suiiste'mol qilish", sub: "Shaxsiy manfaat uchun lavozimdan foydalanish", sanction: "3–8 yil", cases: 112 },
+                { cat: 'yol', num: '266-modda', title: "Yo'l harakati qoidalarini buzish", sub: "Og'ir oqibatlarga olib kelgan buzilish", sanction: "2–5 yil", cases: 389 },
+                { cat: 'ekol', num: '194-modda', title: "Atrof-muhitni ifloslantirish", sub: "Sanoat chiqindilari tashlash", sanction: "1–4 yil", cases: 34 },
+            ];
+
+            let activeCat = 'mulk';
+            let activeLaw = null;
+
+            function renderLawCats() {
+                document.getElementById('lawCats').innerHTML = LAW_CATS.map(c => `
+        <div class="law-cat-item ${c.id === activeCat ? 'active' : ''}" onclick="selectCat('${c.id}')">
+            <div class="lci-icon" style="background:${c.id === activeCat ? 'rgba(255,255,255,.2)' : c.bg}">
+                <i data-lucide="${c.icon}" style="width:14px;height:14px;color:${c.id === activeCat ? 'white' : c.color}"></i>
+            </div>
+            <span class="lci-label">${c.label}</span>
+            <span class="lci-count">${c.count}</span>
+        </div>`).join('');
+                setTimeout(() => lucide.createIcons(), 40);
+            }
+
+            function renderLawList() {
+                const search = document.getElementById('law-search')?.value.toLowerCase() || '';
+                const filtered = LAWS.filter(l => l.cat === activeCat && (l.num.includes(search) || l.title.toLowerCase().includes(search) || !search));
+                document.getElementById('lawList').innerHTML = filtered.map((l, i) => `
+        <div class="law-item ${activeLaw === i ? 'active' : ''}" onclick="selectLaw(${LAWS.indexOf(l)})">
+            <div class="law-num">${l.num}</div>
+            <div class="law-title">${l.title}</div>
+            <div class="law-sub">${l.sub}</div>
+        </div>`).join('');
+            }
+
+            function renderLawDetail(idx) {
+                const l = LAWS[idx];
+                if (!l) { document.getElementById('lawDetail').innerHTML = '<div style="padding:40px 24px;text-align:center;color:var(--muted);font-size:13px;font-weight:600;"><i data-lucide="scale" style="width:32px;height:32px;margin:0 auto 12px;display:block;opacity:.3"></i>Moddani tanlang</div>'; setTimeout(() => lucide.createIcons(), 40); return; }
+                const relCases = DOCS.filter(d => d.tag === l.cat).slice(0, 4);
+                document.getElementById('lawDetail').innerHTML = `<div class="law-detail">
+        <div class="ld-num">Jinoyat kodeksi · ${l.num}</div>
+        <div class="ld-title">${l.title}</div>
+        <div class="ld-text">
+            <b>${l.title}</b> — ${l.sub}. Ushbu modda bo'yicha jinoiy javobgarlik qonunchilikda belgilangan tartibda amalga oshiriladi. Jazo chorasi: <b>${l.sanction}</b> muddatga ozodlikdan mahrum qilish.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div style="background:#f8fafc;border-radius:11px;padding:11px 13px;">
+                <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px;">Jazo</div>
+                <div style="font-size:14px;font-weight:800;color:var(--text);">${l.sanction}</div>
+            </div>
+            <div style="background:#f8fafc;border-radius:11px;padding:11px 13px;">
+                <div style="font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px;">Ishlar soni</div>
+                <div style="font-size:14px;font-weight:800;color:var(--primary);">${l.cases}</div>
+            </div>
+        </div>
+        <div class="ld-cases">
+            <div class="ldc-title">Bog'liq hujjatlar</div>
+            ${relCases.map(d => `<div class="ldc-item">
+                <i data-lucide="file-text" style="width:13px;height:13px;flex-shrink:0"></i>
+                <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.id} — ${d.title.slice(0, 30)}...</span>
+            </div>`).join('')}
+        </div>
+    </div>`;
+                setTimeout(() => lucide.createIcons(), 40);
+            }
+
+            window.selectCat = function (id) {
+                activeCat = id; activeLaw = null;
+                renderLawCats(); renderLawList();
+                document.getElementById('lawDetail').innerHTML = '<div style="padding:40px 24px;text-align:center;color:var(--muted);font-size:13px;font-weight:600;"><i data-lucide="scale" style="width:32px;height:32px;margin:0 auto 12px;display:block;opacity:.3"></i>Moddani tanlang</div>';
+                setTimeout(() => lucide.createIcons(), 40);
+            };
+            window.selectLaw = function (idx) {
+                activeLaw = idx; renderLawList(); renderLawDetail(idx);
+            };
+
+            document.getElementById('law-search').addEventListener('input', renderLawList);
+
+            renderLawCats(); renderLawList();
+            renderLawDetail(-1);
+
+            /* ══════════════════════════════════════
+               REPORT SECTION
+            ══════════════════════════════════════ */
+            let selFmt = 'pdf';
+            window.selectFmt = function (el, fmt) {
+                document.querySelectorAll('.fmt-card').forEach(c => c.classList.remove('selected'));
+                el.classList.add('selected'); selFmt = fmt;
+                document.getElementById('prev-format').textContent = fmt.toUpperCase();
+                const sizes = { pdf: '~2.4 MB', excel: '~1.1 MB', word: '~1.8 MB', json: '~0.6 MB' };
+                document.getElementById('prev-size').textContent = sizes[fmt];
+            };
+
+            function updatePreview() {
+                const from = document.getElementById('rep-from').value;
+                const to = document.getElementById('rep-to').value;
+                const region = document.getElementById('rep-region').value;
+                document.getElementById('prev-period').textContent = from.slice(0, 7) + ' → ' + to.slice(0, 7);
+                document.getElementById('prev-region').textContent = region === 'all' ? 'Barcha' : region;
+                const checked = document.querySelectorAll('#repSections input:checked').length;
+                document.getElementById('prev-sections').textContent = checked + ' ta';
+            }
+            document.querySelectorAll('#repSections input').forEach(i => i.addEventListener('change', updatePreview));
+            document.getElementById('rep-region').addEventListener('change', updatePreview);
+
+            window.generateReport = function () {
+                const btn = document.getElementById('genBtn');
+                const txt = document.getElementById('genBtnText');
+                const spin = document.getElementById('genSpinner');
+                btn.disabled = true; txt.textContent = 'Yaratilmoqda...'; spin.style.display = 'block';
+                setTimeout(() => {
+                    btn.disabled = false; txt.textContent = 'Hisobot yaratish'; spin.style.display = 'none';
+                    const name = document.getElementById('rep-name').value || 'Hisobot';
+                    addPrevReport(name);
+                    const notif = document.createElement('div');
+                    notif.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(22,163,74,.95);color:white;padding:12px 24px;border-radius:14px;font-size:12px;font-weight:800;z-index:99999;box-shadow:0 8px 24px rgba(22,163,74,.4);transition:all .3s;font-family:'Plus Jakarta Sans',sans-serif;display:flex;align-items:center;gap:8px;`;
+                    notif.innerHTML = `<i data-lucide="check-circle" style="width:15px;height:15px"></i> ${name} — ${selFmt.toUpperCase()} formatda tayyor!`;
+                    document.body.appendChild(notif);
+                    requestAnimationFrame(() => requestAnimationFrame(() => { notif.style.transform = 'translateX(-50%) translateY(0)'; lucide.createIcons(); }));
+                    setTimeout(() => { notif.style.opacity = '0'; notif.style.transform = 'translateX(-50%) translateY(10px)'; setTimeout(() => notif.remove(), 300); }, 3000);
+                }, 2400);
+            };
+
+            const prevReportsData = [
+                { name: '2024 yil to\'liq hisobot', fmt: 'PDF', date: '2025-03-10', size: '3.1 MB' },
+                { name: 'Toshkent tahlili Q4', fmt: 'Excel', date: '2025-02-28', size: '0.9 MB' },
+                { name: 'Narkotik jinoyatlar 2024', fmt: 'PDF', date: '2025-01-15', size: '1.7 MB' },
+            ];
+            function addPrevReport(name) {
+                prevReportsData.unshift({ name, fmt: selFmt.toUpperCase(), date: new Date().toISOString().slice(0, 10), size: '2.4 MB' });
+                renderPrevReports();
+            }
+            function renderPrevReports() {
+                const fmt_colors = { PDF: '#dc2626', Excel: '#16a34a', Word: '#2563eb', JSON: '#7c3aed' };
+                document.getElementById('prevReports').innerHTML = prevReportsData.slice(0, 5).map(r => `
+        <div class="recent-item">
+            <div style="width:28px;height:28px;border-radius:8px;background:${fmt_colors[r.fmt] || '#94a3b8'}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i data-lucide="file-text" style="width:13px;height:13px;color:${fmt_colors[r.fmt] || '#94a3b8'}"></i>
+            </div>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:11.5px;font-weight:800;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.name}</div>
+                <div style="font-size:10px;color:var(--muted);">${r.fmt} · ${r.size} · ${r.date}</div>
+            </div>
+            <button onclick="window.downloadDoc('${r.name}')" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;" title="Yuklab olish">
+                <i data-lucide="download" style="width:13px;height:13px"></i>
+            </button>
+        </div>`).join('');
+                setTimeout(() => lucide.createIcons(), 40);
+            }
+            renderPrevReports();
+
+        })();
+    </script>
+</body>
+
+</html>
